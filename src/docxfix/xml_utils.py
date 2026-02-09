@@ -1,11 +1,12 @@
 """XML manipulation utilities using lxml."""
 
 
-
 from lxml import etree
 
 # Type alias for XML elements
-type XMLElement = etree._Element
+# Using the private _Element type is acceptable for type hints
+# as this is the canonical way with lxml until proper types are available
+type XMLElement = etree._Element  # type: ignore[name-defined]
 
 
 def create_simple_xml(root_tag: str, content: str | None = None) -> XMLElement:
