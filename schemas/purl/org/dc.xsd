@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" jaxb:version="2.1" targetNamespace="http://purl.org/dc/elements/1.1/"
+    xmlns="http://purl.org/dc/elements/1.1/" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xs:annotation>
+        <xs:appinfo>
+            <jaxb:schemaBindings>
+                <jaxb:package name="com.ibm.rqm.xml.bind"/>
+            </jaxb:schemaBindings>
+        </xs:appinfo>
+    </xs:annotation>
+
+    <xs:import namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" schemaLocation="rdf.xsd"/>
+    <xs:complexType name="SimpleLiteral">
+        <xs:complexContent mixed="true">
+            <xs:restriction base="xs:anyType">
+                <xs:sequence>
+                    <xs:any processContents="lax" minOccurs="0" maxOccurs="0"/>
+                </xs:sequence>
+                <xs:attribute name="lang" type="xs:string" use="optional"/>
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    
+    <!-- This dictates which languages are allowed for the Core.xml file. -->
+    <xsd:simpleType name="Restrict_Language">
+     <xsd:restriction base="xsd:string">
+       <xsd:enumeration value="en-US"/>
+     </xsd:restriction>
+   </xsd:simpleType>
+
+    <xs:element name="title" type="xsd:string"/>
+    
+    <!-- To remove language restrction change Restrict Language to xs:string -->
+    <xs:element name="language" type="Restrict_Language"/>
+    
+    <xs:element name="creator">
+        <xs:complexType mixed="true">
+            <xs:attribute ref="rdf:resource"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="subject" type="xsd:string"/>
+    <xs:element name="description" type="xsd:string"/>
+    <xs:element name="identifier" type="xsd:string"/>
+</xs:schema>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://schemas.microsoft.com/office/spreadsheetml/2014/revision"
+            xmlns="http://schemas.microsoft.com/office/spreadsheetml/2014/revision"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+  <xsd:complexType name="CT_revisionPtr">
+     <!--Acquire different revisions for attrbiutes from https://learn.microsoft.com/en-us/openspecs/office_standards/ms-xlsx/7b729443-d0cd-434e-8d8c-b228f701a55b  this is stupid why they do this-->
+     <xsd:anyAttribute namespace="##any" processContents="lax"/>
+  </xsd:complexType>
+
+
+  <xsd:element name="revisionPtr" type="CT_revisionPtr" />
+
+</xsd:schema>

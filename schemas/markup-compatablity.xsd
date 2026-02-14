@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+           targetNamespace="http://schemas.openxmlformats.org/markup-compatibility/2006"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <!-- Define IgnorableType as simpleContent -->
+  <xs:simpleType name="IgnorableType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="strict"/>
+      <xs:enumeration value="transitional"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

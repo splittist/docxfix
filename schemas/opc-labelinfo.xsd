@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified"
+           targetNamespace="http://schemas.microsoft.com/office/2020/mipLabelMetadata"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:clbl="http://schemas.microsoft.com/office/2020/mipLabelMetadata">
+
+  <xs:import namespace="http://www.w3.org/2001/XMLSchema"/>
+
+
+<!-- This is stupid and needed to be redone by Corey Kwiatkowski... It is very represenative of Microsoft's -->
+  <xs:simpleType name="ST_ClassificationGuid">
+    <xs:restriction base="xs:token">
+      <xs:pattern value="\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+
+  <xs:complexType name="CT_ClassificationExtension">
+    <xs:sequence>
+      <xs:any/>
+    </xs:sequence>
+    <xs:attribute name="uri" type="xs:token" use="required"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="CT_ClassificationExtensionList">
+    <xs:sequence>
+      <xs:element name="ext" type="clbl:CT_ClassificationExtension" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:complexType name="CT_ClassificationLabel">
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="enabled" type="xs:boolean" use="required"/>
+    <xs:attribute name="method" type="xs:string" use="required"/>
+    <xs:attribute name="siteId" type="clbl:ST_ClassificationGuid" use="required"/>
+    <xs:attribute name="contentBits" type="xs:unsignedInt" use="optional"/>
+    <xs:attribute name="removed" type="xs:boolean" use="required"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="CT_ClassificationLabelList">
+    <xs:sequence>
+      <xs:element name="label" type="clbl:CT_ClassificationLabel" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="extLst" type="clbl:CT_ClassificationExtensionList" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:element name="labelList" type="clbl:CT_ClassificationLabelList"/>
+</xs:schema>

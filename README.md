@@ -2,12 +2,26 @@
 
 A CLI utility for creating docx fixtures with desirable characteristics for testing.
 
+Examples include:
+
+* tracked changes (insertions, deletions and moves)
+
+* comments, including 'modern' comments with rich text, replies and 'resolved/done' status
+
+* complex automatic numbering
+
+* highlighted text
+
+* footnotes and endnotes
+
+* multiple sections with different header and footer patterns
+
 ## Features
 
-- Built with modern Python tools: **uv**, **ruff**, **Typer**, **pytest**, **syrupy**, **lxml**
-- Type-safe with **typing-extensions** and **types-lxml**
-- XML manipulation utilities using **lxml**
-- Comprehensive test suite with snapshot testing
+* Built with modern Python tools: **uv**, **ruff**, **Typer**, **pytest**, **syrupy**, **lxml**
+* Type-safe with **typing-extensions** and **types-lxml**
+* XML manipulation utilities using **lxml**
+* Comprehensive test suite with snapshot testing
 
 ## Installation
 
@@ -62,7 +76,7 @@ docxfix create output.docx --template template.docx
 
 ## Project Structure
 
-```
+```txt
 docxfix/
 ├── src/
 │   └── docxfix/
@@ -78,11 +92,11 @@ docxfix/
 
 ## Technologies
 
-- **uv**: Fast Python package installer and resolver
-- **ruff**: Extremely fast Python linter and formatter
-- **Typer**: Modern CLI framework with type hints
-- **pytest**: Testing framework
-- **syrupy**: Snapshot testing for pytest
-- **lxml**: Powerful XML processing library
-- **typing-extensions**: Backported and experimental type hints
-- **types-lxml**: Type stubs for lxml
+* **uv**: Fast Python package installer and resolver
+* **ruff**: Extremely fast Python linter and formatter
+* **Typer**: Modern CLI framework with type hints
+* **pytest**: Testing framework
+* **syrupy**: Snapshot testing for pytest
+* **lxml**: Powerful XML processing library
+* **typing-extensions**: Backported and experimental type hints
+* **types-lxml**: Type stubs for lxml
