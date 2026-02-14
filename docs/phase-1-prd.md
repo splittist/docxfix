@@ -143,11 +143,20 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 
 ## 7. Milestones
 
-### M1: Spec + validation foundation
+### M1: Spec + validation foundation ✓ COMPLETED
 
-- Finalize Phase 1 spec fields.
-- Implement initial parser/validator and error formatting.
-- Deliver first passing unit tests for spec integrity.
+- ✓ Finalize Phase 1 spec fields.
+- ✓ Implement initial parser/validator and error formatting.
+- ✓ Deliver first passing unit tests for spec integrity.
+
+**Implementation notes:**
+- Created `spec.py` with typed models: DocumentSpec, Paragraph, TrackedChange, Comment, NumberedParagraph
+- Created `generator.py` with DocumentGenerator class to produce .docx files from spec
+- Created `validator.py` with DocumentValidator for structural integrity checks
+- Wired up CLI to generate documents from spec
+- Comprehensive test coverage: 42 tests passing (spec, generator, validator, CLI)
+- Basic tracked change support (insertions/deletions) implemented
+- Full comment and numbering support deferred to M3 and M4
 
 ### M2: Tracked changes end-to-end
 

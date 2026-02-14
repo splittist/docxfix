@@ -1,0 +1,45 @@
+## 2026-02-14 - Spec Model Foundation (M1 Complete)
+
+**What was done:**
+- Implemented M1: Spec + validation foundation from Phase 1 PRD
+- Created core typed spec model in `src/docxfix/spec.py`:
+  - DocumentSpec, Paragraph, TrackedChange (insertion/deletion)
+  - Comment, CommentReply, NumberedParagraph structures
+  - Full type hints and dataclasses
+- Created document generator in `src/docxfix/generator.py`:
+  - Generates valid .docx (ZIP with OOXML) from spec
+  - Basic tracked changes support (insertions/deletions working)
+  - Proper namespaces and XML structure
+- Created validator in `src/docxfix/validator.py`:
+  - ZIP structure validation
+  - XML well-formedness checks
+  - Error formatting with clear messages
+- Updated CLI to actually generate documents:
+  - Takes output path
+  - Validates by default (--no-validate to skip)
+  - Verbose mode for debugging
+- Comprehensive tests: 42 tests passing
+  - Unit tests for spec models
+  - Integration tests for generator
+  - Validator tests (happy path + error cases)
+  - CLI tests with temp files
+
+**What's ready for next work:**
+- Foundation is solid - spec model is flexible and extensible
+- Basic tracked changes (FR-1) partially done - insertions/deletions work
+- Comment and numbering infrastructure exists in spec but not in generator yet
+- Next priority: Complete M2 (tracked changes end-to-end) OR M3 (comments)
+  - M2 needs: Golden fixture validation, more complex tracked change scenarios
+  - M3 needs: Implement comment generation in DocumentGenerator, add comments.xml part
+
+**Technical notes:**
+- Using lxml for XML manipulation (works well)
+- .docx structure: ZIP archive with [Content_Types].xml, _rels, word/document.xml minimum
+- Tracked changes use w:ins and w:del elements with author/date/id attributes
+- Comments will need: comments.xml, commentsExtended.xml, commentsIds.xml parts
+- Numbering will need: numbering.xml, styles.xml parts
+
+**Recommendations:**
+- For M2: Start by creating a generator method to produce a fixture matching single-insertion.docx
+- For M3: Study comment-thread.docx structure, implement multi-part generation
+- Consider adding a "from_golden" helper to extract spec from existing .docx for testing
