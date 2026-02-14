@@ -12,6 +12,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "faker>=26.0.0",
     "pytest>=8.0.0",
     "syrupy>=4.6.0",
     "types-lxml>=2024.0.0",

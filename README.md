@@ -28,7 +28,7 @@ A lightweight project outline is available in [`docs/project-outline.md`](docs/p
 
 ## Features
 
-* Built with modern Python tools: **uv**, **ruff**, **Typer**, **pytest**, **syrupy**, **lxml**
+* Built with modern Python tools: **uv**, **ruff**, **Typer**, **pytest**, **syrupy**, **lxml**, **Faker**
 * Type-safe with **typing-extensions** and **types-lxml**
 * XML manipulation utilities using **lxml**
 * Comprehensive test suite with snapshot testing
@@ -111,5 +111,6 @@ docxfix/
 * **pytest**: Testing framework
 * **syrupy**: Snapshot testing for pytest
 * **lxml**: Powerful XML processing library
+* **Faker**: Deterministic fake data generation for fixtures
 * **typing-extensions**: Backported and experimental type hints
 * **types-lxml**: Type stubs for lxml
