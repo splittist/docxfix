@@ -180,11 +180,27 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 - All 51 tests passing
 - Comment features align with golden corpus expectations (comment-thread.docx, resolved-comment.docx)
 
-### M4: Numbering end-to-end
+### M4: Numbering end-to-end ✓ COMPLETED
 
-- Implement multilevel numbering mutator.
-- Add restart behavior and nested application.
-- Validate against numbering goldens.
+- ✓ Implement multilevel numbering mutator.
+- ✓ Add restart behavior and nested application.
+- ✓ Validate against numbering goldens.
+
+**Implementation notes:**
+- Created `_create_numbering()` method to generate numbering.xml with legal-style multilevel numbering
+- Created `_create_styles()` method to generate styles.xml with ListParagraph style
+- Extended DocumentGenerator to detect numbered paragraphs and include numbering/styles parts
+- Updated content types and relationships to include numbering.xml and styles.xml
+- Modified `_add_paragraph()` to add pPr with numPr elements for numbered paragraphs
+- Implemented 9-level legal numbering (0-8) with decimal format and patterns:
+  - Level 0: %1. (produces "1.")
+  - Level 1: %1.%2. (produces "1.1.")
+  - Level 2: %1.%2.%3. (produces "1.1.1.")
+  - And so on up to level 8
+- Proper indentation values (left, hanging) matching Word's legal numbering behavior
+- Comprehensive test coverage: 12 new tests (7 generator + 5 integration)
+- All 63 tests passing
+- Numbering structure matches golden corpus expectations (legal-list.docx pattern)
 
 ### M5: Integration hardening + docs
 

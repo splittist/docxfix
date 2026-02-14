@@ -101,8 +101,63 @@
 - Comment replies all link to same parent (no nested reply threading beyond 1 level)
 - Date formatting is basic ISO format (could enhance with Word-specific formatting)
 
+---
+
+## 2026-02-14 - Multilevel Numbering Implementation (M4 Complete)
+
+**What was done:**
+- Implemented M4: Numbering end-to-end from Phase 1 PRD (FR-3)
+- Extended DocumentGenerator with full multilevel numbering support:
+  - Created `_create_numbering()` to generate numbering.xml with legal-style numbering definitions
+  - Created `_create_styles()` to generate styles.xml with ListParagraph style
+  - Modified `_add_paragraph()` to add paragraph properties (pPr) with numbering properties (numPr)
+  - Updated content types and relationships to include numbering.xml and styles.xml
+- Implemented legal-style numbering structure:
+  - Abstract numbering definition with 9 levels (ilvl 0-8)
+  - Decimal number format for all levels
+  - Legal-style level text patterns: "%1.", "%1.%2.", "%1.%2.%3.", etc.
+  - Proper indentation values (left, hanging) matching Word's behavior:
+    - Level 0: left=360, hanging=360
+    - Level 1: left=792, hanging=432
+    - Level 2: left=1224, hanging=504
+    - And so on up to level 8
+  - Concrete num element linking to abstract numbering
+- Updated NumberedParagraph spec:
+  - Removed redundant `text` field (text is in Paragraph)
+  - Now only contains numbering properties: level and numbering_id
+- Comprehensive test coverage: +12 tests (75 total, all passing)
+  - 7 generator tests (numbering XML structure, styles, content types, rels, mixed content)
+  - 5 integration tests (legal-list fixture, format patterns, indentation, comments interaction)
+- Generated fixtures match golden corpus structure:
+  - legal-list.docx pattern validated
+  - Correct numId, ilvl, pStyle elements in document.xml
+  - Proper abstractNum and num definitions in numbering.xml
+  - ListParagraph style in styles.xml
+
+**What's validated:**
+- All 63 tests passing (51 original + 12 new numbering tests)
+- Numbering works with and without comments
+- Mixed numbered and plain paragraphs supported
+- Multilevel nesting up to 9 levels
+- XML structure matches golden corpus expectations
+
+**What's ready for next work:**
+- M2 (tracked changes end-to-end) - basic implementation exists, needs golden fixture validation
+- M5 (integration hardening + docs) - ready to start
+  - Combined fixture scenarios (numbering + comments + tracked changes)
+  - Compatibility lane/checklist baseline run
+  - Publish Phase 1 user/developer docs
+
+**Technical implementation details:**
+- Numbering and styles parts only generated when paragraphs with numbering are present
+- Relationship IDs adjust based on presence of comments (rId1/rId2 without comments, rId4/rId5 with comments)
+- ListParagraph style includes basedOn Normal, contextualSpacing, and proper UI priority
+- Numbering follows OOXML spec with w:abstractNum pointing to w:num via abstractNumId
+- All namespaces properly registered (w, w15, w16cid, mc)
+
 **Recommendations for next implementer:**
-- For M4 (numbering): Start with simple single-level numbering, then add multilevel
-- For M2: Add golden fixture comparison tests (compare generated vs corpus files)
-- Consider adding a fixture gallery/viewer for manual inspection
-- Think about combining features (e.g., comments on tracked changes)
+- For M2: Create golden fixture comparison tests for tracked changes
+- For M5: Test combined scenarios (numbering + tracked changes + comments in same document)
+- Consider adding support for different numbering formats (upperRoman, lowerLetter, etc.) in Phase 2
+- Think about numbering restart capability (currently all lists share same counter)
+

@@ -70,9 +70,8 @@ class NumberingLevel:
 
 @dataclass
 class NumberedParagraph:
-    """Specification for a paragraph with numbering."""
+    """Specification for numbering properties of a paragraph."""
 
-    text: str
     level: int = 0
     numbering_id: int = 1
 

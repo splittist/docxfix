@@ -89,11 +89,9 @@ def test_comment_resolved():
 def test_numbered_paragraph():
     """Test creating a numbered paragraph."""
     numbered = NumberedParagraph(
-        text="Numbered item",
         level=1,
         numbering_id=2,
     )
-    assert numbered.text == "Numbered item"
     assert numbered.level == 1
     assert numbered.numbering_id == 2
 
