@@ -16,6 +16,10 @@ Examples include:
 
 * multiple sections with different header and footer patterns
 
+## Roadmap
+
+A lightweight project outline is available in [`docs/project-outline.md`](docs/project-outline.md).
+
 ## Features
 
 * Built with modern Python tools: **uv**, **ruff**, **Typer**, **pytest**, **syrupy**, **lxml**
