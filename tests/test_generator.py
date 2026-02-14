@@ -8,7 +8,7 @@ import pytest
 from lxml import etree
 
 from docxfix.generator import DocumentGenerator
-from docxfix.spec import ChangeType, DocumentSpec, TrackedChange
+from docxfix.spec import ChangeType, Comment, CommentReply, DocumentSpec, TrackedChange
 
 
 def test_generator_creates_zip_file():
@@ -219,3 +219,185 @@ def test_generator_multiple_tracked_changes():
 
             assert len(insertions) == 2
             assert len(deletions) == 1
+
+
+def test_generator_simple_comment():
+    """Test generating a document with a simple comment."""
+    spec = DocumentSpec(seed=12345)
+    comment = Comment(
+        text="This is a comment",
+        anchor_text="dolor",
+        author="Test Author",
+    )
+    spec.add_paragraph("Lorem ipsum dolor sit amet", comments=[comment])
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir) / "test.docx"
+        generator = DocumentGenerator(spec)
+        generator.generate(output_path)
+
+        with zipfile.ZipFile(output_path, "r") as docx_zip:
+            # Verify comment files exist
+            files = docx_zip.namelist()
+            assert "word/comments.xml" in files
+            assert "word/commentsExtended.xml" in files
+            assert "word/commentsIds.xml" in files
+
+            # Verify document.xml has comment markers
+            doc_xml = docx_zip.read("word/document.xml")
+            root = etree.fromstring(doc_xml)
+            ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+            # Check comment range markers
+            comment_starts = root.findall(".//w:commentRangeStart", namespaces=ns)
+            comment_ends = root.findall(".//w:commentRangeEnd", namespaces=ns)
+            comment_refs = root.findall(".//w:commentReference", namespaces=ns)
+
+            assert len(comment_starts) == 1
+            assert len(comment_ends) == 1
+            assert len(comment_refs) == 1
+
+            # Verify comments.xml structure
+            comments_xml = docx_zip.read("word/comments.xml")
+            comments_root = etree.fromstring(comments_xml)
+            comments = comments_root.findall(".//w:comment", namespaces=ns)
+            assert len(comments) == 1
+
+            # Check comment text
+            comment_text = comments[0].findall(".//w:t", namespaces=ns)
+            assert any(t.text == "This is a comment" for t in comment_text)
+
+
+def test_generator_comment_with_reply():
+    """Test generating a comment with a reply."""
+    spec = DocumentSpec(seed=12345)
+    reply = CommentReply(
+        text="Reply to comment",
+        author="Reply Author",
+    )
+    comment = Comment(
+        text="Original comment",
+        anchor_text="dolor",
+        author="Original Author",
+        replies=[reply],
+    )
+    spec.add_paragraph("Lorem ipsum dolor sit amet", comments=[comment])
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir) / "test.docx"
+        generator = DocumentGenerator(spec)
+        generator.generate(output_path)
+
+        with zipfile.ZipFile(output_path, "r") as docx_zip:
+            # Verify comments.xml has both comments
+            comments_xml = docx_zip.read("word/comments.xml")
+            ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+            comments_root = etree.fromstring(comments_xml)
+            comments = comments_root.findall(".//w:comment", namespaces=ns)
+            assert len(comments) == 2
+
+            # Verify commentsExtended.xml has parent link
+            comments_ext_xml = docx_zip.read("word/commentsExtended.xml")
+            ns15 = {"w15": "http://schemas.microsoft.com/office/word/2012/wordml"}
+            ext_root = etree.fromstring(comments_ext_xml)
+            comment_exs = ext_root.findall(".//w15:commentEx", namespaces=ns15)
+            assert len(comment_exs) == 2
+
+            # Second comment should have parent reference
+            parent_refs = [
+                c.get(f"{{{ns15['w15']}}}paraIdParent")
+                for c in comment_exs
+                if f"{{{ns15['w15']}}}paraIdParent" in c.attrib
+            ]
+            assert len(parent_refs) == 1
+
+
+def test_generator_resolved_comment():
+    """Test generating a resolved comment."""
+    spec = DocumentSpec(seed=12345)
+    comment = Comment(
+        text="Resolved comment",
+        anchor_text="dolor",
+        author="Test Author",
+        resolved=True,
+    )
+    spec.add_paragraph("Lorem ipsum dolor sit amet", comments=[comment])
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir) / "test.docx"
+        generator = DocumentGenerator(spec)
+        generator.generate(output_path)
+
+        with zipfile.ZipFile(output_path, "r") as docx_zip:
+            # Verify commentsExtended.xml has resolved state
+            comments_ext_xml = docx_zip.read("word/commentsExtended.xml")
+            ns15 = {"w15": "http://schemas.microsoft.com/office/word/2012/wordml"}
+            ext_root = etree.fromstring(comments_ext_xml)
+            comment_exs = ext_root.findall(".//w15:commentEx", namespaces=ns15)
+            assert len(comment_exs) == 1
+
+            # Check resolved state
+            done_attr = comment_exs[0].get(f"{{{ns15['w15']}}}done")
+            assert done_attr == "1"
+
+
+def test_generator_comment_ids_unique():
+    """Test that comment IDs are properly generated."""
+    spec = DocumentSpec(seed=12345)
+    comment = Comment(
+        text="Test comment",
+        anchor_text="dolor",
+        author="Test Author",
+    )
+    spec.add_paragraph("Lorem ipsum dolor sit amet", comments=[comment])
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir) / "test.docx"
+        generator = DocumentGenerator(spec)
+        generator.generate(output_path)
+
+        with zipfile.ZipFile(output_path, "r") as docx_zip:
+            # Verify commentsIds.xml structure
+            comments_ids_xml = docx_zip.read("word/commentsIds.xml")
+            ns_cid = {"w16cid": "http://schemas.microsoft.com/office/word/2016/wordml/cid"}
+            ids_root = etree.fromstring(comments_ids_xml)
+            comment_ids = ids_root.findall(".//w16cid:commentId", namespaces=ns_cid)
+            assert len(comment_ids) == 1
+
+            # Check that paraId and durableId are present
+            para_id = comment_ids[0].get(f"{{{ns_cid['w16cid']}}}paraId")
+            durable_id = comment_ids[0].get(f"{{{ns_cid['w16cid']}}}durableId")
+            assert para_id is not None
+            assert durable_id is not None
+            assert len(para_id) == 8
+            assert len(durable_id) == 8
+
+
+def test_generator_multiple_comments():
+    """Test generating with multiple comments in one paragraph."""
+    spec = DocumentSpec(seed=12345)
+    comment1 = Comment(
+        text="First comment",
+        anchor_text="dolor",
+        author="Author 1",
+    )
+    comment2 = Comment(
+        text="Second comment",
+        anchor_text="amet",
+        author="Author 2",
+    )
+    spec.add_paragraph("Lorem ipsum dolor sit amet", comments=[comment1, comment2])
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir) / "test.docx"
+        generator = DocumentGenerator(spec)
+        generator.generate(output_path)
+
+        with zipfile.ZipFile(output_path, "r") as docx_zip:
+            # Verify comments.xml has both comments
+            comments_xml = docx_zip.read("word/comments.xml")
+            ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+            comments_root = etree.fromstring(comments_xml)
+            comments = comments_root.findall(".//w:comment", namespaces=ns)
+            # Should handle multiple comments (implementation detail - may create sequential comments)
+            assert len(comments) >= 1

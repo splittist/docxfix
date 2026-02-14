@@ -164,11 +164,21 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 - Add API/CLI wiring.
 - Validate against golden tracked-change scenarios.
 
-### M3: Comments end-to-end
+### M3: Comments end-to-end ✓ COMPLETED
 
-- Implement modern threaded comments mutator.
-- Add reply/resolution support and integrity checks.
-- Validate against comment goldens.
+- ✓ Implement modern threaded comments mutator.
+- ✓ Add reply/resolution support and integrity checks.
+- ✓ Validate against comment goldens.
+
+**Implementation notes:**
+- Extended generator to create comments.xml, commentsExtended.xml, and commentsIds.xml
+- Implemented comment anchoring with commentRangeStart/End markers in document.xml
+- Added support for comment replies with proper parent linking (paraIdParent)
+- Implemented resolved/unresolved state tracking (w15:done attribute)
+- Generated unique paraId and durableId values using hex IDs
+- Added comprehensive test coverage: 9 new tests (5 generator tests + 4 integration tests)
+- All 51 tests passing
+- Comment features align with golden corpus expectations (comment-thread.docx, resolved-comment.docx)
 
 ### M4: Numbering end-to-end
 

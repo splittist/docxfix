@@ -43,3 +43,66 @@
 - For M2: Start by creating a generator method to produce a fixture matching single-insertion.docx
 - For M3: Study comment-thread.docx structure, implement multi-part generation
 - Consider adding a "from_golden" helper to extract spec from existing .docx for testing
+
+---
+
+## 2026-02-14 - Modern Threaded Comments (M3 Complete)
+
+**What was done:**
+- Implemented M3: Comments end-to-end from Phase 1 PRD (FR-2)
+- Extended DocumentGenerator with full comment support:
+  - Creates comments.xml with comment content and metadata
+  - Creates commentsExtended.xml with modern comment features (threading, resolved state)
+  - Creates commentsIds.xml with unique identifiers
+  - Adds proper comment anchoring in document.xml (commentRangeStart/End/Reference)
+- Implemented comment features:
+  - Main comments with configurable author, date, text
+  - Comment replies with parent linking (paraIdParent attribute)
+  - Resolved/unresolved state tracking (w15:done="0"/"1")
+  - Anchor text matching to position comments on specific text ranges
+  - Handles edge cases (anchor text not found, multiple comments, etc.)
+- Added necessary OOXML namespaces:
+  - w14 for paragraph IDs
+  - w15 for extended comment features
+  - w16cid for comment ID tracking
+  - mc for markup compatibility
+- Updated content types and relationships to include comment parts
+- Comprehensive test coverage: +9 tests (51 total, all passing)
+  - 5 generator tests for comment scenarios
+  - 4 integration tests validating against golden corpus structure
+  - Tests cover: simple comments, replies, resolved state, multiple replies, edge cases
+
+**What's validated:**
+- Generated comment documents match golden corpus structure:
+  - comment-thread.docx pattern (main comment + reply)
+  - resolved-comment.docx pattern (resolved state)
+- All XML parts are well-formed and validate
+- Comment threading relationships are correctly established
+- Unique IDs (paraId, durableId) are properly generated using hex strings
+
+**What's ready for next work:**
+- M2 (tracked changes end-to-end) - needs golden fixture validation
+- M4 (numbering end-to-end) - ready to implement
+  - Study legal-list.docx and styled-numbering.docx golden fixtures
+  - Implement numbering.xml and styles.xml generation
+  - Add multilevel numbering with proper lvl definitions
+- Combined scenarios (M5) - can now test comments + tracked changes together
+
+**Technical implementation details:**
+- Comment metadata tracking: Store comment info in _comment_metadata list during document generation
+- ID generation: _generate_hex_id(8) creates 8-char uppercase hex strings
+- Comment anchoring: Split paragraph text into before/anchor/after segments
+- Multi-part coordination: comments.xml (content) + commentsExtended.xml (modern features) + commentsIds.xml (IDs)
+- Relationship IDs: rId1, rId2, rId3 for comment parts in document.xml.rels
+
+**Known limitations/future work:**
+- Currently handles one comment per paragraph (multiple comments create sequential anchors)
+- Anchor text must be exact match (no fuzzy matching)
+- Comment replies all link to same parent (no nested reply threading beyond 1 level)
+- Date formatting is basic ISO format (could enhance with Word-specific formatting)
+
+**Recommendations for next implementer:**
+- For M4 (numbering): Start with simple single-level numbering, then add multilevel
+- For M2: Add golden fixture comparison tests (compare generated vs corpus files)
+- Consider adding a fixture gallery/viewer for manual inspection
+- Think about combining features (e.g., comments on tracked changes)
