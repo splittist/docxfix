@@ -4,6 +4,8 @@ This document captures the immediate direction for `docxfix` as an open-source P
 
 ## Product direction
 
+See also: `docs/phase-1-prd.md` for detailed Phase 1 requirements and manual-work breakdown.
+
 - Primary form factor: **Python library first**, with a **thin CLI** wrapper.
 - Purpose: generate synthetic Word documents for testing pipelines that cannot use confidential real contracts.
 - Scope target: cross-runtime usage (fixtures consumed by Python, JavaScript/TypeScript, and other app stacks).
