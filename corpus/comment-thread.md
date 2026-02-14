@@ -32,7 +32,7 @@
 * a `commentsExtended.xml` containing:
 
   * two <w15:commentEx> elements, one for each of the original comment and the reply comment
-  * each <w15:commentEx> element has a w15:paraId attribute whose value (an 8 hex digit string) corresponds to the value of the w14:paraId attribute of the last (only) paragraph in the comment text in the <w:comment> elment in `comments.xml`
+  * each <w15:commentEx> element has a w15:paraId attribute whose value (an 8 hex digit string) corresponds to the value of the w14:paraId attribute of the last (only) paragraph in the comment text in the <w:comment> element in `comments.xml`
   * each <w15:commentEx> element contains a w15:done attribute with the value "0", indicating the comment is not resolved
   * the <w15:commentEx> element corresponding to the reply comment has a w15:paraIdParent attribute whose value is the value of the w15:paraId attribute of the original (parent) comment
 

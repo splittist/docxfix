@@ -29,8 +29,8 @@
 
 * a `commentsExtended.xml` containing:
 
-  * a <w15:commentEx> elements with
-    * a w15:paraId attribute whose value (an 8 hex digit string) corresponds to the value of the w14:paraId attribute of the last (only) paragraph in the comment text in the <w:comment> elment in `comments.xml`
+  * a <w15:commentEx> element with
+    * a w15:paraId attribute whose value (an 8 hex digit string) corresponds to the value of the w14:paraId attribute of the last (only) paragraph in the comment text in the <w:comment> element in `comments.xml`
     * a w15:done attribute with the value "1", indicating the comment is resolved
 
 * a `commentsIds.xml` containing:

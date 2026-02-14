@@ -32,6 +32,8 @@ See also: `docs/phase-1-prd.md` for detailed Phase 1 requirements and manual-wor
 - Use synthetic placeholder text for now (e.g., lorem ipsum).
 - Faker-driven metadata (names, initials, etc.) is acceptable and desirable.
 - Deterministic generation should be supported where practical (e.g., random seed), but **byte-identical output is not required** due to Word/environmental normalization behavior.
+- Reference OOXML schemas in `./schemas` for validation and structural guidance.
+- Maintain a corpus of `.docx` fixtures with sidecar `.md` descriptions in `./corpus`.
 
 ## Architecture outline
 
@@ -62,4 +64,3 @@ See also: `docs/phase-1-prd.md` for detailed Phase 1 requirements and manual-wor
 
 - Compliance/audit guarantees.
 - Confidentiality certifications or governance workflows.
-

@@ -27,4 +27,4 @@
 
 * in `numbering.xml`, a concrete <w:num> entry pointing to a <w:abstractNum> entry with <w:lvl> elements corresponding to "Heading1" to "Heading4" (etc.), and defining the numbering appearance (including the <w:lvlText> elements)
 
-*Comment:* It's actually much easier to create complex numbering schemes by programatically manipulating the xml in `styles.xml` and `numbering.xml` than using the UI.
+*Notes:* It's actually much easier to create complex numbering schemes by programmatically manipulating the XML in `styles.xml` and `numbering.xml` than using the UI.
