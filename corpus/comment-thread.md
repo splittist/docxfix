@@ -24,6 +24,8 @@
   * a <w:commentRangeEnd> element corresponding to the reply comment
   * a run containing a <w:commentReference> element corresponding to the reply comment
 
+  **Note on multi-reply ordering:** This golden file has a single reply, so the end/reference elements are interleaved (end0, ref0, end1, ref1). For 2+ replies, Word requires grouping all <w:commentRangeEnd> elements together before all <w:commentReference> runs (end0, end1, end2, ref0, ref1, ref2). See COMMENT_THREADING_STATUS.md for details.
+
 * a `comments.xml` containing:
 
   * two <w:comment> elements, one for each of the original comment and the reply comment

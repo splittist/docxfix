@@ -622,28 +622,25 @@ class DocumentGenerator:
                 text_elem.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
                 text_elem.text = before_text
             
-            # Add comment range start for main comment
+            # Add comment range starts: main comment first, then replies
             etree.SubElement(para, f"{{{w_ns}}}commentRangeStart", {f"{{{w_ns}}}id": comment_id})
-            
-            # Add comment range start for each reply (nested ranges)
             for reply_id in reply_ids:
                 etree.SubElement(para, f"{{{w_ns}}}commentRangeStart", {f"{{{w_ns}}}id": reply_id})
-            
+
             # Add the anchored text
             run = etree.SubElement(para, f"{{{w_ns}}}r")
             text_elem = etree.SubElement(run, f"{{{w_ns}}}t")
             text_elem.text = anchor_text
-            
-            # Add comment range end for main comment
+
+            # Add all comment range ends together
             etree.SubElement(para, f"{{{w_ns}}}commentRangeEnd", {f"{{{w_ns}}}id": comment_id})
-            
-            # Add comment reference for main comment
-            run = etree.SubElement(para, f"{{{w_ns}}}r")
-            self._add_comment_reference_run(run, comment_id)
-            
-            # Add comment range end and reference for each reply
             for reply_id in reply_ids:
                 etree.SubElement(para, f"{{{w_ns}}}commentRangeEnd", {f"{{{w_ns}}}id": reply_id})
+
+            # Add all comment references together
+            run = etree.SubElement(para, f"{{{w_ns}}}r")
+            self._add_comment_reference_run(run, comment_id)
+            for reply_id in reply_ids:
                 run = etree.SubElement(para, f"{{{w_ns}}}r")
                 self._add_comment_reference_run(run, reply_id)
             
