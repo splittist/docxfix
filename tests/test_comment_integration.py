@@ -97,22 +97,6 @@ def test_generate_comment_thread_fixture():
                 if f"{{{ns15['w15']}}}paraIdParent" in ex.attrib
             ]
             assert len(parent_refs) == 1  # Only the reply has a parent
-            
-            # 4. Check commentsIds.xml structure
-            comments_ids_xml = docx_zip.read("word/commentsIds.xml")
-            ns_cid = {"w16cid": "http://schemas.microsoft.com/office/word/2016/wordml/cid"}
-            ids_root = etree.fromstring(comments_ids_xml)
-            comment_ids = ids_root.findall(".//w16cid:commentId", namespaces=ns_cid)
-            assert len(comment_ids) == 2
-            
-            # Each should have paraId and durableId (8 hex chars)
-            for cid in comment_ids:
-                para_id = cid.get(f"{{{ns_cid['w16cid']}}}paraId")
-                durable_id = cid.get(f"{{{ns_cid['w16cid']}}}durableId")
-                assert para_id is not None
-                assert durable_id is not None
-                assert len(para_id) == 8
-                assert len(durable_id) == 8
 
 
 def test_generate_resolved_comment_fixture():

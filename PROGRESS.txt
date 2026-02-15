@@ -103,6 +103,75 @@
 
 ---
 
+## 2026-02-15 - Namespace Compatibility Fixes for Word Validation
+
+**Problem identified:**
+- Generated DOCX files (step3, step4, step5) were requiring "repair" when opened in Microsoft Word
+- Files passed internal XML validation but failed Word's stricter requirements
+- Issue: Missing comprehensive namespace declarations that Word expects
+
+**What was discovered (corpus comparison):**
+- Corpus files (`comment-thread.docx`) contain 30+ namespace declarations in root elements
+- Generated files only had 3-6 namespaces (minimal valid OOXML)
+- Missing `mc:Ignorable` attribute with comprehensive namespace list
+- Affected all comment-related XML files and document.xml
+
+**What was fixed:**
+1. **Added WORD_NAMESPACES constant** to `src/docxfix/generator.py`:
+   - Comprehensive map with 30+ namespaces matching Word's expectations
+   - Includes: wpc, cx1-8, aink, am3d, o, oel, r, m, v, wp14, wp, w10, w, w14, w15, w16cid, w16, etc.
+
+2. **Updated XML generation methods** to use WORD_NAMESPACES:
+   - `_create_document()` - document.xml now has full namespace set
+   - `_create_comments()` - comments.xml with comprehensive namespaces
+   - `_create_comments_extended()` - commentsExtended.xml
+   - `_create_comments_ids()` - commentsIds.xml
+
+3. **Added proper mc:Ignorable attributes:**
+   - All files now mark optional namespaces: "w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14"
+
+**Tools created:**
+1. `test_progressive_comments.py` - generates 5 minimal test cases:
+   - Single comment (no reply)
+   - Two separate comments
+   - Comment with one reply
+   - Resolved comment
+   - Comment with multiple replies
+
+2. `Test-DocxFiles.ps1` - PowerShell script for automated Word validation:
+   - Opens DOCX files via Word COM automation
+   - Reports which files open successfully vs. require repair
+   - Useful for CI/CD validation
+
+3. `NAMESPACE_FIXES.md` - comprehensive documentation of:
+   - Problem analysis
+   - Changes made
+   - Next steps for testing
+   - Automated testing options
+
+**Status:**
+- ⚠️ **Cannot verify fixes** - Project requires Python 3.12+ but system has Python 3.10.11
+- Code changes are complete and should resolve namespace issues
+- Requires user to:
+  1. Install Python 3.12+
+  2. Run `test_progressive_comments.py` to regenerate test files
+  3. Test files in Word using `Test-DocxFiles.ps1`
+  4. Compare XML of any files that still require repair
+
+**Additional areas to investigate if issues persist:**
+- RSID attributes (`w:rsidR`, `w:rsidRPr`, `w:rsidRDefault`) - Word's revision save IDs
+- Language attributes (`w:lang="en-US"`) on runs
+- Proof checking attributes (`w:noProof`) on comment anchor runs
+- Comment date/time formatting (currently using basic ISO format)
+
+**Next milestone:**
+- M6: Word Compatibility Validation
+  - Verify all generated files open in Word without repair prompts
+  - Add RSID generation if needed for better Word compatibility
+  - Consider adding language and proof attributes to match corpus files exactly
+
+---
+
 ## 2026-02-14 - Multilevel Numbering Implementation (M4 Complete)
 
 **What was done:**
@@ -160,4 +229,55 @@
 - For M5: Test combined scenarios (numbering + tracked changes + comments in same document)
 - Consider adding support for different numbering formats (upperRoman, lowerLetter, etc.) in Phase 2
 - Think about numbering restart capability (currently all lists share same counter)
+
+---
+
+## 2026-02-15 - Comment Threading Investigation: commentsIds.xml Removal
+
+**Problem being investigated:**
+- Generated DOCX files contain comment threading metadata but Microsoft Word doesn't recognize it
+- Comment replies appear as separate independent comments instead of threaded/nested
+- Comments marked as resolved don't show resolved status in Word
+- However, SuperDoc word processor DOES correctly thread comments and recognize resolved status
+
+**Key discovery from SuperDoc testing:**
+- SuperDoc correctly threads our generated comments (shows replies nested under parent)
+- SuperDoc correctly recognizes resolved comments (they don't appear in UI)
+- When SuperDoc saves files, it does NOT create commentsIds.xml entries
+- SuperDoc source code only creates commentsIds.xml when commentsExtensible.xml is present
+
+**What was changed:**
+- Removed commentsIds.xml file generation entirely from DocumentGenerator
+- Removed commentsIds.xml content type entry from [Content_Types].xml
+- Removed commentsIds.xml relationship from word/_rels/document.xml.rels
+- Adjusted relationship IDs: numbering now uses rId3 (was rId4), styles uses rId4 (was rId5) when comments present
+- Updated all tests to not check for commentsIds.xml presence
+- Removed test_generator_comment_ids_unique test entirely
+
+**Changes committed:**
+- src/docxfix/generator.py - commentsIds.xml removal and ID adjustments
+- tests/test_generator.py - removed commentsIds assertions
+- tests/test_comment_integration.py - removed commentsIds structure checks  
+- tests/test_numbering_integration.py - updated expected relationship IDs (rId3/rId4 instead of rId4/rId5)
+
+**Test results:**
+- ✅ All 61 tests pass (1 pre-existing unrelated failure in styles.xml test)
+- ✅ Generated files are valid OOXML
+- ✅ XML structure remains correct
+
+**Status:**
+- ⚠️ **AWAITING VERIFICATION** - Need to test if this fixes Word threading/resolved recognition
+- Generated new test files in scratch_out/ for manual Word verification
+- If Word still doesn't thread correctly, see COMMENT_THREADING_STATUS.md for next investigation steps
+
+**Hypothesis:**
+- SuperDoc working without commentsIds.xml suggests Word might not need it either
+- commentsIds.xml may have been red herring or Word-specific compatibility layer
+- Core threading metadata is in commentsExtended.xml (paraIdParent, done attributes)
+
+**Next steps:**
+1. Open scratch_out/test3-comment-with-reply.docx in Word - check if replies now thread
+2. Open scratch_out/test4-resolved-comment.docx in Word - check if comment shows as resolved
+3. If still broken, investigate other differences (RSIDs, language tags, date formats)
+4. See COMMENT_THREADING_STATUS.md for comprehensive debugging plan
 

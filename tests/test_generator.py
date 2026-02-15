@@ -241,7 +241,6 @@ def test_generator_simple_comment():
             files = docx_zip.namelist()
             assert "word/comments.xml" in files
             assert "word/commentsExtended.xml" in files
-            assert "word/commentsIds.xml" in files
 
             # Verify document.xml has comment markers
             doc_xml = docx_zip.read("word/document.xml")
@@ -339,38 +338,6 @@ def test_generator_resolved_comment():
             # Check resolved state
             done_attr = comment_exs[0].get(f"{{{ns15['w15']}}}done")
             assert done_attr == "1"
-
-
-def test_generator_comment_ids_unique():
-    """Test that comment IDs are properly generated."""
-    spec = DocumentSpec(seed=12345)
-    comment = Comment(
-        text="Test comment",
-        anchor_text="dolor",
-        author="Test Author",
-    )
-    spec.add_paragraph("Lorem ipsum dolor sit amet", comments=[comment])
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        output_path = Path(tmpdir) / "test.docx"
-        generator = DocumentGenerator(spec)
-        generator.generate(output_path)
-
-        with zipfile.ZipFile(output_path, "r") as docx_zip:
-            # Verify commentsIds.xml structure
-            comments_ids_xml = docx_zip.read("word/commentsIds.xml")
-            ns_cid = {"w16cid": "http://schemas.microsoft.com/office/word/2016/wordml/cid"}
-            ids_root = etree.fromstring(comments_ids_xml)
-            comment_ids = ids_root.findall(".//w16cid:commentId", namespaces=ns_cid)
-            assert len(comment_ids) == 1
-
-            # Check that paraId and durableId are present
-            para_id = comment_ids[0].get(f"{{{ns_cid['w16cid']}}}paraId")
-            durable_id = comment_ids[0].get(f"{{{ns_cid['w16cid']}}}durableId")
-            assert para_id is not None
-            assert durable_id is not None
-            assert len(para_id) == 8
-            assert len(durable_id) == 8
 
 
 def test_generator_multiple_comments():
