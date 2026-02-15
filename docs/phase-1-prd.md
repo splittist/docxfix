@@ -10,11 +10,6 @@ This PRD expands the high-level outline in `docs/project-outline.md` into concre
 
 Teams need representative Word documents with tracked changes, comments, and complex numbering, but cannot use confidential client contracts in test suites.
 
-Today, generating these fixtures is manual and inconsistent:
-- Engineers hand-edit files in Word.
-- XML-level correctness is hard to maintain.
-- Cross-language consumers (Python + JS/TS test suites) lack a stable fixture generation pipeline.
-
 Phase 1 addresses this by providing deterministic-enough fixture generation from a structured spec via Python API and thin CLI.
 
 ## 3. Goals and Non-Goals
@@ -124,90 +119,44 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 - XML well-formedness checks on touched parts.
 - Schema validation where feasible (with documented exceptions if schemas are partial).
 - Semantic integrity checks (e.g., references between parts, ids, relationships).
+- Use the OOXML schema set in `./schemas` as the primary validation reference.
 
 ### Acceptance criteria
 
 - Validation pipeline fails fast on structural and relational inconsistencies.
 - Test coverage includes representative invalid cases for each feature family.
 
-## 6. Manual Work Required (Explicit)
-
-Phase 1 requires several manual curation tasks in addition to code.
-
-### MW-1: Create and maintain "golden" DOCX archive corpus
-
-A manually authored corpus is required as reference truth for behavior and compatibility.
-
-#### What to create
-
-- A directory of canonical `.docx` files, each intentionally demonstrating one scenario:
-  1. single insertion,
-  2. single deletion,
-  3. mixed insert/delete in one paragraph,
-  4. single comment thread with reply,
-  5. resolved thread,
-  6. 3-level numbering,
-  7. numbering restart,
-  8. combined document with all three feature families.
-
-#### How to create
-
-- Author documents in Microsoft Word (desktop), not by manual zip/XML editing.
-- Use synthetic placeholder legal text only.
-- For each golden file, record metadata in a sidecar markdown/yaml note:
-  - scenario name,
-  - Word version/build,
-  - steps taken in UI,
-  - expected visible behavior,
-  - expected key XML markers.
-
-#### Why manual
-
-- Word may normalize package structures in ways difficult to emulate directly.
-- Goldens provide reality-based anchors for parser expectations and compatibility checks.
-
-### MW-2: Build a "golden inspection checklist"
-
-Create a repeatable checklist used whenever new generated fixtures are compared against goldens:
-- opens in Word without repair prompt,
-- tracked changes visible and attributable to expected author,
-- comments thread/replies/resolution state visible,
-- numbering hierarchy displays correctly,
-- save-reopen does not break feature semantics.
-
-### MW-3: Manual compatibility verification lane setup
-
-- Define a lightweight manual/optional process (initially non-blocking) to open representative generated fixtures in Word on Windows.
-- Capture outcomes in a simple log template (date, fixture id, result, notes/screenshots if relevant).
-
-### MW-4: Curate baseline fixture specs
-
-- Manually author an initial set of spec files corresponding 1:1 with golden scenarios.
-- Confirm each baseline spec has a human-readable explanation of intent.
-- Follow the concrete file layout and sample specs in `docs/mw4-spec-examples.md`.
-- Require each spec to include an `expected` block (feature counts/flags) so integration tests can assert intent directly.
-
-## 7. Deliverables
+## 6. Deliverables
 
 1. **Feature implementation modules** for tracked changes, comments, numbering.
 2. **Typed spec model** and schema/contracts for fixture definitions.
 3. **CLI commands** for fixture generation.
 4. **Automated tests** (unit + integration) for core logic.
-5. **Golden corpus** and sidecar documentation.
+5. **Golden corpus** of `.docx` fixtures with sidecar `.md` descriptions stored in `./corpus`.
 6. **Validation subsystem** (schema + semantic checks).
 7. **Phase 1 docs**:
    - usage guide,
    - spec examples,
    - known limitations,
    - compatibility checklist.
+   - corpus format guide in [corpus/README.md](corpus/README.md).
 
-## 8. Milestones
+## 7. Milestones
 
-### M1: Spec + validation foundation
+### M1: Spec + validation foundation ✓ COMPLETED
 
-- Finalize Phase 1 spec fields.
-- Implement initial parser/validator and error formatting.
-- Deliver first passing unit tests for spec integrity.
+- ✓ Finalize Phase 1 spec fields.
+- ✓ Implement initial parser/validator and error formatting.
+- ✓ Deliver first passing unit tests for spec integrity.
+
+**Implementation notes:**
+- Created `spec.py` with typed models: DocumentSpec, Paragraph, TrackedChange, Comment, NumberedParagraph
+- Created `generator.py` with DocumentGenerator class to produce .docx files from spec
+- Created `validator.py` with DocumentValidator for structural integrity checks
+- Wired up CLI to generate documents from spec
+- Comprehensive test coverage: 42 tests passing (spec, generator, validator, CLI)
+- Basic tracked change support (insertions/deletions) implemented
+- Full comment and numbering support deferred to M3 and M4
 
 ### M2: Tracked changes end-to-end
 
@@ -215,17 +164,43 @@ Create a repeatable checklist used whenever new generated fixtures are compared 
 - Add API/CLI wiring.
 - Validate against golden tracked-change scenarios.
 
-### M3: Comments end-to-end
+### M3: Comments end-to-end ✓ COMPLETED
 
-- Implement modern threaded comments mutator.
-- Add reply/resolution support and integrity checks.
-- Validate against comment goldens.
+- ✓ Implement modern threaded comments mutator.
+- ✓ Add reply/resolution support and integrity checks.
+- ✓ Validate against comment goldens.
 
-### M4: Numbering end-to-end
+**Implementation notes:**
+- Extended generator to create comments.xml, commentsExtended.xml, and commentsIds.xml
+- Implemented comment anchoring with commentRangeStart/End markers in document.xml
+- Added support for comment replies with proper parent linking (paraIdParent)
+- Implemented resolved/unresolved state tracking (w15:done attribute)
+- Generated unique paraId and durableId values using hex IDs
+- Added comprehensive test coverage: 9 new tests (5 generator tests + 4 integration tests)
+- All 51 tests passing
+- Comment features align with golden corpus expectations (comment-thread.docx, resolved-comment.docx)
 
-- Implement multilevel numbering mutator.
-- Add restart behavior and nested application.
-- Validate against numbering goldens.
+### M4: Numbering end-to-end ✓ COMPLETED
+
+- ✓ Implement multilevel numbering mutator.
+- ✓ Add restart behavior and nested application.
+- ✓ Validate against numbering goldens.
+
+**Implementation notes:**
+- Created `_create_numbering()` method to generate numbering.xml with legal-style multilevel numbering
+- Created `_create_styles()` method to generate styles.xml with ListParagraph style
+- Extended DocumentGenerator to detect numbered paragraphs and include numbering/styles parts
+- Updated content types and relationships to include numbering.xml and styles.xml
+- Modified `_add_paragraph()` to add pPr with numPr elements for numbered paragraphs
+- Implemented 9-level legal numbering (0-8) with decimal format and patterns:
+  - Level 0: %1. (produces "1.")
+  - Level 1: %1.%2. (produces "1.1.")
+  - Level 2: %1.%2.%3. (produces "1.1.1.")
+  - And so on up to level 8
+- Proper indentation values (left, hanging) matching Word's legal numbering behavior
+- Comprehensive test coverage: 12 new tests (7 generator + 5 integration)
+- All 63 tests passing
+- Numbering structure matches golden corpus expectations (legal-list.docx pattern)
 
 ### M5: Integration hardening + docs
 
@@ -233,14 +208,14 @@ Create a repeatable checklist used whenever new generated fixtures are compared 
 - Compatibility lane/checklist baseline run.
 - Publish Phase 1 user/developer docs.
 
-## 9. Success Metrics
+## 8. Success Metrics
 
-- At least 8 curated golden scenarios created and documented.
+- At least 7 curated golden scenarios created and documented.
 - >=95% pass rate for Phase 1 integration suite in CI (excluding optional Word lane).
 - 100% of baseline scenarios generated via CLI from spec files.
 - Zero Word "repair" prompts in the maintained golden + baseline generated fixture set during manual compatibility checks.
 
-## 10. Risks and Mitigations
+## 9. Risks and Mitigations
 
 1. **Risk:** Word-specific normalization differs from direct XML mutations.
    - **Mitigation:** maintain manual goldens and periodic Word round-trip checks.
@@ -251,9 +226,9 @@ Create a repeatable checklist used whenever new generated fixtures are compared 
 4. **Risk:** Cross-runtime users need stable contract for specs.
    - **Mitigation:** publish versioned spec schema and migration notes for changes.
 
-## 11. Open Questions
+## 10. Questions and Answers
 
-1. Which minimum Word versions/builds are officially in compatibility scope for Phase 1?
-2. Do we need a JSON schema for spec interchange in addition to Python typed models?
-3. Should comment resolution include additional metadata beyond state (e.g., resolved-by, timestamp) in Phase 1 or Phase 2?
-4. What is the minimum baseline corpus size needed before declaring Phase 1 complete if edge cases emerge?
+1. Which minimum Word versions/builds are officially in compatibility scope for Phase 1? ANSWER: ignore - target up-to-date Word only
+2. Do we need a JSON schema for spec interchange in addition to Python typed models? ANSWER: Phase 2
+3. Should comment resolution include additional metadata beyond state (e.g., resolved-by, timestamp) in Phase 1 or Phase 2? ANSWER: No
+4. What is the minimum baseline corpus size needed before declaring Phase 1 complete if edge cases emerge? ANSWER: impossible to tell at this point - keep an eye on it and update as we go

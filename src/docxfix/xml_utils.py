@@ -1,6 +1,5 @@
 """XML manipulation utilities using lxml."""
 
-
 from lxml import etree
 
 # Type alias for XML elements

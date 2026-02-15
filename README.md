@@ -20,9 +20,15 @@ Examples include:
 
 A lightweight project outline is available in [`docs/project-outline.md`](docs/project-outline.md).
 
+## Repository Layout
+
+- `./schemas` contains the OOXML schema set used as a validation reference.
+- `./corpus` contains curated `.docx` fixtures and sidecar `.md` descriptions.
+- Corpus details live in [corpus/README.md](corpus/README.md).
+
 ## Features
 
-* Built with modern Python tools: **uv**, **ruff**, **Typer**, **pytest**, **syrupy**, **lxml**
+* Built with modern Python tools: **uv**, **ruff**, **Typer**, **pytest**, **syrupy**, **lxml**, **Faker**
 * Type-safe with **typing-extensions** and **types-lxml**
 * XML manipulation utilities using **lxml**
 * Comprehensive test suite with snapshot testing
@@ -82,6 +88,9 @@ docxfix create output.docx --template template.docx
 
 ```txt
 docxfix/
+├── corpus/                # Golden fixtures with sidecar descriptions
+├── docs/                  # Project docs and PRD
+├── schemas/               # OOXML schema reference set
 ├── src/
 │   └── docxfix/
 │       ├── __init__.py      # Package initialization
@@ -102,5 +111,6 @@ docxfix/
 * **pytest**: Testing framework
 * **syrupy**: Snapshot testing for pytest
 * **lxml**: Powerful XML processing library
+* **Faker**: Deterministic fake data generation for fixtures
 * **typing-extensions**: Backported and experimental type hints
 * **types-lxml**: Type stubs for lxml
