@@ -241,6 +241,7 @@ def test_generator_simple_comment():
             files = docx_zip.namelist()
             assert "word/comments.xml" in files
             assert "word/commentsExtended.xml" in files
+            assert "word/commentsIds.xml" in files
 
             # Verify document.xml has comment markers
             doc_xml = docx_zip.read("word/document.xml")

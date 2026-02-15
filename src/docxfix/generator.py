@@ -137,6 +137,7 @@ class DocumentGenerator:
             if has_comments:
                 docx_zip.writestr("word/comments.xml", self._create_comments())
                 docx_zip.writestr("word/commentsExtended.xml", self._create_comments_extended())
+                docx_zip.writestr("word/commentsIds.xml", self._create_comments_ids())
             
             # Add numbering files if needed
             if has_numbering:
@@ -189,6 +190,15 @@ class DocumentGenerator:
                 ContentType=(
                     "application/vnd.openxmlformats-officedocument."
                     "wordprocessingml.commentsExtended+xml"
+                ),
+            )
+            etree.SubElement(
+                types,
+                "Override",
+                PartName="/word/commentsIds.xml",
+                ContentType=(
+                    "application/vnd.openxmlformats-officedocument."
+                    "wordprocessingml.commentsIds+xml"
                 ),
             )
         
@@ -351,12 +361,19 @@ class DocumentGenerator:
                 Type="http://schemas.microsoft.com/office/2011/relationships/commentsExtended",
                 Target="commentsExtended.xml",
             )
-        
+            etree.SubElement(
+                rels,
+                "Relationship",
+                Id="rId3",
+                Type="http://schemas.microsoft.com/office/2016/09/relationships/commentsIds",
+                Target="commentsIds.xml",
+            )
+
         # Add numbering and styles relationships if needed
         if has_numbering:
             # Adjust IDs based on whether comments are present
-            num_id = "rId3" if has_comments else "rId1"
-            styles_id = "rId4" if has_comments else "rId2"
+            num_id = "rId4" if has_comments else "rId1"
+            styles_id = "rId5" if has_comments else "rId2"
             
             etree.SubElement(
                 rels,
@@ -374,9 +391,9 @@ class DocumentGenerator:
             )
 
         if has_comments and has_numbering:
-            next_id = 5
+            next_id = 6
         elif has_comments:
-            next_id = 3
+            next_id = 4
         elif has_numbering:
             next_id = 3
         else:

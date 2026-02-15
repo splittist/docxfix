@@ -247,27 +247,28 @@ def test_numbering_with_comments(tmp_path):
         assert "word/styles.xml" in z.namelist()
         assert "word/comments.xml" in z.namelist()
         assert "word/commentsExtended.xml" in z.namelist()
-        
+        assert "word/commentsIds.xml" in z.namelist()
+
         # Verify relationship IDs are correct with comments
         rels_content = z.read("word/_rels/document.xml.rels")
         rels_root = etree.fromstring(rels_content)
-        
+
         rels = rels_root.findall(
             "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"
         )
-        
-        # When comments present, numbering should use rId3 and styles rId4
+
+        # When comments present, numbering should use rId4 and styles rId5
         numbering_rel = None
         styles_rel = None
-        
+
         for rel in rels:
             if "numbering" in rel.get("Type"):
                 numbering_rel = rel
             elif "styles" in rel.get("Type"):
                 styles_rel = rel
-        
+
         assert numbering_rel is not None
-        assert numbering_rel.get("Id") == "rId3"
-        
+        assert numbering_rel.get("Id") == "rId4"
+
         assert styles_rel is not None
-        assert styles_rel.get("Id") == "rId4"
+        assert styles_rel.get("Id") == "rId5"
