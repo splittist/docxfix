@@ -14,13 +14,23 @@ class ChangeType(Enum):
 
 @dataclass
 class TrackedChange:
-    """Specification for a tracked change (insertion or deletion)."""
+    """Specification for a tracked change (insertion or deletion).
+
+    For insertions, ``insert_after`` identifies the substring of the paragraph
+    text after which the inserted text is placed.  When empty, the insertion
+    is appended after the paragraph text (or emitted standalone when the
+    paragraph text is also empty).
+
+    For deletions, ``text`` is located within the paragraph text and wrapped
+    in a ``<w:del>`` element.  The surrounding text is emitted as plain runs.
+    """
 
     change_type: ChangeType
     text: str
     author: str = "Test User"
     date: datetime | None = None
     revision_id: int = 1
+    insert_after: str = ""
 
     def __post_init__(self) -> None:
         """Set default date if not provided."""

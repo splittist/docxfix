@@ -158,11 +158,19 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 - Basic tracked change support (insertions/deletions) implemented
 - Full comment and numbering support deferred to M3 and M4
 
-### M2: Tracked changes end-to-end
+### M2: Tracked changes end-to-end ✓ COMPLETED
 
-- Implement tracked change mutator.
-- Add API/CLI wiring.
-- Validate against golden tracked-change scenarios.
+- ✓ Implement tracked change mutator.
+- ✓ Add API/CLI wiring.
+- ✓ Validate against golden tracked-change scenarios.
+
+**Implementation notes:**
+- Enhanced `TrackedChange` spec with `insert_after` field for positioning insertions within paragraph text
+- Rewrote tracked change generation to interleave plain text runs with tracked change elements, matching corpus patterns (single-insertion, single-deletion, mixed-insert-delete)
+- Added `xml:space="preserve"` on `w:t` and `w:delText` elements containing leading/trailing whitespace
+- Legacy behaviour preserved: when paragraph text is empty, changes are emitted standalone
+- 10 integration tests validating against golden corpus structure (3 corpus structure tests + 7 generator tests)
+- All 71 tests passing (excluding 1 pre-existing styles.xml test failure)
 
 ### M3: Comments end-to-end ✓ COMPLETED
 

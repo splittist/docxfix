@@ -499,18 +499,91 @@ class DocumentGenerator:
         if para_spec.comments:
             self._add_paragraph_with_comments(para, para_spec)
         elif para_spec.tracked_changes:
-            for change in para_spec.tracked_changes:
-                self._add_tracked_change(para, change)
+            self._add_paragraph_with_tracked_changes(para, para_spec)
         else:
             # Simple run with text (applies to both numbered and regular paragraphs)
             run = etree.SubElement(para, f"{{{w_ns}}}r")
             text_elem = etree.SubElement(run, f"{{{w_ns}}}t")
             text_elem.text = para_spec.text
 
-    def _add_tracked_change(
-        self, para: XMLElement, change
-    ) -> None:  # change: TrackedChange
-        """Add a tracked change to a paragraph."""
+    def _add_text_run(self, parent: XMLElement, text: str) -> None:
+        """Add a plain text run, setting xml:space='preserve' when needed."""
+        w_ns = self.NAMESPACES["w"]
+        run = etree.SubElement(parent, f"{{{w_ns}}}r")
+        text_elem = etree.SubElement(run, f"{{{w_ns}}}t")
+        text_elem.text = text
+        if text != text.strip():
+            text_elem.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+
+    def _add_paragraph_with_tracked_changes(
+        self, para: XMLElement, para_spec: Paragraph
+    ) -> None:
+        """Add paragraph content interleaving plain text with tracked changes.
+
+        When the paragraph has base text, tracked changes are positioned within
+        it: deletions are located by matching their ``text`` as a substring;
+        insertions are placed after their ``insert_after`` substring.  When the
+        paragraph text is empty, changes are emitted sequentially (legacy
+        behaviour).
+        """
+        w_ns = self.NAMESPACES["w"]
+        base_text = para_spec.text
+
+        if not base_text:
+            # Legacy path: no base text, just emit changes in order
+            for change in para_spec.tracked_changes:
+                self._emit_tracked_change(para, change)
+            return
+
+        # Build a sorted list of (position, event) markers.
+        # Each event is ("ins", change) or ("del", change).
+        events: list[tuple[int, str, object]] = []
+
+        for change in para_spec.tracked_changes:
+            if change.change_type == ChangeType.DELETION:
+                idx = base_text.find(change.text)
+                if idx == -1:
+                    # Deleted text not found – append as standalone
+                    events.append((len(base_text), "del", change))
+                else:
+                    events.append((idx, "del", change))
+            else:
+                # Insertion
+                if change.insert_after:
+                    idx = base_text.find(change.insert_after)
+                    if idx != -1:
+                        events.append((idx + len(change.insert_after), "ins", change))
+                    else:
+                        events.append((len(base_text), "ins", change))
+                else:
+                    events.append((len(base_text), "ins", change))
+
+        # Sort by position, with insertions before deletions at the same pos
+        events.sort(key=lambda e: (e[0], 0 if e[1] == "ins" else 1))
+
+        # Walk through base_text, emitting plain runs and tracked changes
+        cursor = 0
+        for pos, kind, change in events:
+            if kind == "del":
+                # Emit plain text before the deletion
+                if pos > cursor:
+                    self._add_text_run(para, base_text[cursor:pos])
+                # Emit the deletion element
+                self._emit_tracked_change(para, change)
+                cursor = pos + len(change.text)
+            else:
+                # Insertion: emit plain text up to the insertion point
+                if pos > cursor:
+                    self._add_text_run(para, base_text[cursor:pos])
+                    cursor = pos
+                self._emit_tracked_change(para, change)
+
+        # Emit remaining plain text
+        if cursor < len(base_text):
+            self._add_text_run(para, base_text[cursor:])
+
+    def _emit_tracked_change(self, para: XMLElement, change) -> None:
+        """Emit a single ``<w:ins>`` or ``<w:del>`` element."""
         w_ns = self.NAMESPACES["w"]
         self._revision_counter += 1
 
@@ -518,7 +591,6 @@ class DocumentGenerator:
         date_str = change.date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         if change.change_type == ChangeType.INSERTION:
-            # Create insertion element
             ins = etree.SubElement(
                 para,
                 f"{{{w_ns}}}ins",
@@ -528,13 +600,15 @@ class DocumentGenerator:
                     f"{{{w_ns}}}date": date_str,
                 },
             )
-            # Add run with text inside insertion
             run = etree.SubElement(ins, f"{{{w_ns}}}r")
             text_elem = etree.SubElement(run, f"{{{w_ns}}}t")
             text_elem.text = change.text
+            if change.text != change.text.strip():
+                text_elem.set(
+                    "{http://www.w3.org/XML/1998/namespace}space", "preserve"
+                )
 
         elif change.change_type == ChangeType.DELETION:
-            # Create deletion element
             delete = etree.SubElement(
                 para,
                 f"{{{w_ns}}}del",
@@ -544,10 +618,13 @@ class DocumentGenerator:
                     f"{{{w_ns}}}date": date_str,
                 },
             )
-            # Add run with deleted text inside deletion
             run = etree.SubElement(delete, f"{{{w_ns}}}r")
             text_elem = etree.SubElement(run, f"{{{w_ns}}}delText")
             text_elem.text = change.text
+            if change.text != change.text.strip():
+                text_elem.set(
+                    "{http://www.w3.org/XML/1998/namespace}space", "preserve"
+                )
 
     def _add_paragraph_with_comments(self, para: XMLElement, para_spec: Paragraph) -> None:
         """Add a paragraph with comment anchoring."""

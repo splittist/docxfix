@@ -281,3 +281,38 @@
 3. If still broken, investigate other differences (RSIDs, language tags, date formats)
 4. See COMMENT_THREADING_STATUS.md for comprehensive debugging plan
 
+---
+
+## 2026-02-15 - Tracked Changes End-to-End (M2 Complete)
+
+**What was done:**
+- Completed M2: Tracked changes end-to-end from Phase 1 PRD (FR-1)
+- Enhanced `TrackedChange` spec with `insert_after` field for positioning insertions within paragraph text
+- Rewrote tracked change generation in `DocumentGenerator`:
+  - New `_add_paragraph_with_tracked_changes()` method interleaves plain text runs with tracked change elements
+  - Deletions are located by finding `change.text` as a substring of the paragraph text
+  - Insertions are positioned using `insert_after` to find the anchor point
+  - Events are sorted by position and emitted in document order
+  - Legacy behaviour preserved: empty paragraph text → changes emitted standalone
+- New `_add_text_run()` helper emits plain runs with `xml:space="preserve"` when text has leading/trailing whitespace
+- Renamed internal `_add_tracked_change()` to `_emit_tracked_change()` (now only responsible for emitting the XML element, not positioning)
+- Added `xml:space="preserve"` on `w:t` and `w:delText` inside tracked changes when whitespace present
+
+**Test coverage:** +10 tests (71 total, all passing; 1 pre-existing styles.xml failure excluded)
+- 3 golden corpus structure tests (verify single-insertion.docx, single-deletion.docx, mixed-insert-delete.docx)
+- 4 generator tests matching corpus patterns (single insertion, single deletion, mixed, unique IDs)
+- 3 additional tests (validation, legacy behaviour, xml:space preserve)
+
+**Files changed:**
+- `src/docxfix/spec.py` - Added `insert_after` field to TrackedChange
+- `src/docxfix/generator.py` - New `_add_paragraph_with_tracked_changes()`, `_add_text_run()`, `_emit_tracked_change()` methods
+- `tests/test_tracked_change_integration.py` - New integration test file
+- `docs/phase-1-prd.md` - Marked M2 as complete
+
+**What's ready for next work:**
+- M5 (Integration hardening + docs) - the final milestone
+  - Combined fixture scenarios (numbering + comments + tracked changes in same document)
+  - Compatibility lane/checklist baseline run
+  - Publish Phase 1 user/developer docs
+- Pre-existing styles.xml test failure in `test_numbering_generator.py::test_styles_xml_structure` should be investigated
+
