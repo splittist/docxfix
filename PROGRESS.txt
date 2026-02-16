@@ -354,3 +354,48 @@
 - Compatibility lane/checklist baseline run
 - Publish Phase 1 user/developer docs
 
+---
+
+## 2026-02-16 - Heading-Based (Styled) Numbering Support
+
+**What was done:**
+- Added heading-based numbering as an alternative to legal-list numbering
+- This implements the "styled-numbering" pattern seen in corpus/styled-numbering.docx
+- Key structural difference: paragraphs get `pStyle=HeadingN` only, no explicit `numPr`; numbering linkage lives in style definitions
+
+**Spec changes (spec.py):**
+- Added `heading_level: int | None` field to `Paragraph` (values 1-4 → Heading1-Heading4)
+- Added `heading_level` parameter to `DocumentSpec.add_paragraph()`
+
+**Generator changes (generator.py):**
+- `generate()` detects `has_heading_numbering` alongside `has_numbering`; both trigger styles/numbering parts
+- `_add_paragraph()` emits `<w:pStyle w:val="HeadingN"/>` with no `numPr` for heading paragraphs
+- `_create_numbering()` refactored: extracted `_add_list_abstract_num()` and `_add_heading_abstract_num()`
+  - Heading abstractNum has 4 levels with pStyle back-references (Heading1-Heading4)
+  - Level formats: decimal "%1", decimal "%2.%1", lowerLetter "(%3)", lowerRoman "(%4)"
+  - Uses separate numId (2 when list numbering coexists, 1 when standalone)
+- `_create_styles()` accepts `has_heading_numbering` flag; calls `_add_heading_styles()`
+  - Heading1-4 styles: basedOn Normal, keepNext/keepLines, embedded numPr, outlineLvl
+  - Plausible formatting: major theme fonts, bold for H1-H2, decreasing font sizes
+
+**Coexistence:**
+- List numbering (numId=1, abstractNumId=0) and heading numbering (numId=2, abstractNumId=1) work together
+- Each type uses its own abstractNum/num pair; no collisions
+
+**Test coverage (tests/test_heading_numbering.py):** 11 tests
+- Paragraph emission: pStyle only, no numPr in document.xml (2 tests)
+- styles.xml: Heading1-4 definitions with numPr and formatting (2 tests)
+- numbering.xml: pStyle back-references, correct numFmt/lvlText (2 tests)
+- Coexistence: list + heading numbering in same document (1 test)
+- Combined with comments and tracked changes (2 tests)
+- Validation passes (2 tests)
+
+**Test results:** ✅ All 92 tests passing (81 existing + 11 new)
+
+**Files changed:**
+- `src/docxfix/spec.py` - heading_level field
+- `src/docxfix/generator.py` - paragraph emission, styles, numbering
+- `tests/test_heading_numbering.py` - new test file
+- `docs/phase-1-prd.md` - noted heading numbering under M5
+- `PROGRESS.txt` - this entry
+

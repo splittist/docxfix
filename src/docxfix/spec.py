@@ -94,6 +94,7 @@ class Paragraph:
     tracked_changes: list[TrackedChange] = field(default_factory=list)
     comments: list[Comment] = field(default_factory=list)
     numbering: NumberedParagraph | None = None
+    heading_level: int | None = None  # 1-4 → Heading1-Heading4
 
 
 @dataclass
@@ -111,6 +112,7 @@ class DocumentSpec:
         tracked_changes: list[TrackedChange] | None = None,
         comments: list[Comment] | None = None,
         numbering: NumberedParagraph | None = None,
+        heading_level: int | None = None,
     ) -> "DocumentSpec":
         """
         Add a paragraph to the document.
@@ -120,6 +122,7 @@ class DocumentSpec:
             tracked_changes: Optional list of tracked changes
             comments: Optional list of comments
             numbering: Optional numbering configuration
+            heading_level: Optional heading level (1-4) for styled numbering
 
         Returns:
             Self for method chaining
@@ -130,6 +133,7 @@ class DocumentSpec:
                 tracked_changes=tracked_changes or [],
                 comments=comments or [],
                 numbering=numbering,
+                heading_level=heading_level,
             )
         )
         return self

@@ -113,15 +113,24 @@ class DocumentGenerator:
             para.numbering for para in self.spec.paragraphs
         )
 
+        # Check if document has heading-based numbering
+        has_heading_numbering = any(
+            para.heading_level for para in self.spec.paragraphs
+        )
+
+        # Styles and numbering parts needed for either type
+        needs_styles = has_numbering or has_heading_numbering
+        needs_numbering = has_numbering or has_heading_numbering
+
         # Create a ZIP file (docx is a ZIP archive)
         with zipfile.ZipFile(
             output_path, "w", zipfile.ZIP_DEFLATED
         ) as docx_zip:
             # Add required files
-            docx_zip.writestr("[Content_Types].xml", self._create_content_types(has_comments, has_numbering))
+            docx_zip.writestr("[Content_Types].xml", self._create_content_types(has_comments, needs_numbering))
             docx_zip.writestr("_rels/.rels", self._create_rels())
             docx_zip.writestr(
-                "word/_rels/document.xml.rels", self._create_document_rels(has_comments, has_numbering)
+                "word/_rels/document.xml.rels", self._create_document_rels(has_comments, needs_numbering)
             )
             docx_zip.writestr("word/document.xml", self._create_document())
             docx_zip.writestr("word/settings.xml", self._create_settings())
@@ -140,9 +149,9 @@ class DocumentGenerator:
                 docx_zip.writestr("word/commentsIds.xml", self._create_comments_ids())
             
             # Add numbering files if needed
-            if has_numbering:
-                docx_zip.writestr("word/numbering.xml", self._create_numbering())
-                docx_zip.writestr("word/styles.xml", self._create_styles())
+            if needs_numbering:
+                docx_zip.writestr("word/numbering.xml", self._create_numbering(has_numbering, has_heading_numbering))
+                docx_zip.writestr("word/styles.xml", self._create_styles(has_heading_numbering))
 
     def _create_content_types(self, has_comments: bool = False, has_numbering: bool = False) -> bytes:
         """Create [Content_Types].xml."""
@@ -476,24 +485,28 @@ class DocumentGenerator:
         para.set(f"{{{w14_ns}}}paraId", para_id)
         para.set(f"{{{w14_ns}}}textId", "77777777")  # Static textId for now
         
-        # Add paragraph properties if needed (for numbering)
+        # Add paragraph properties if needed (for numbering or heading)
         if para_spec.numbering:
             pPr = etree.SubElement(para, f"{{{w_ns}}}pPr")
-            
+
             # Add paragraph style (ListParagraph for numbered lists)
             pStyle = etree.SubElement(pPr, f"{{{w_ns}}}pStyle")
             pStyle.set(f"{{{w_ns}}}val", "ListParagraph")
-            
+
             # Add numbering properties
             numPr = etree.SubElement(pPr, f"{{{w_ns}}}numPr")
-            
+
             # Set indentation level (ilvl)
             ilvl = etree.SubElement(numPr, f"{{{w_ns}}}ilvl")
             ilvl.set(f"{{{w_ns}}}val", str(para_spec.numbering.level))
-            
+
             # Set numbering ID (numId)
             numId = etree.SubElement(numPr, f"{{{w_ns}}}numId")
             numId.set(f"{{{w_ns}}}val", str(para_spec.numbering.numbering_id))
+        elif para_spec.heading_level:
+            pPr = etree.SubElement(para, f"{{{w_ns}}}pPr")
+            pStyle = etree.SubElement(pPr, f"{{{w_ns}}}pStyle")
+            pStyle.set(f"{{{w_ns}}}val", f"Heading{para_spec.heading_level}")
 
         # Handle different content types
         if para_spec.comments and para_spec.tracked_changes:
@@ -1100,109 +1113,141 @@ class DocumentGenerator:
         """Create docProps/app.xml."""
         return APP_PROPERTIES_XML.encode("utf-8")
     
-    def _create_numbering(self) -> bytes:
-        """Create word/numbering.xml with multilevel legal-style numbering."""
+    def _create_numbering(self, has_list_numbering: bool = True, has_heading_numbering: bool = False) -> bytes:
+        """Create word/numbering.xml with multilevel numbering definitions."""
         w_ns = self.NAMESPACES["w"]
         w15_ns = self.NAMESPACES["w15"]
         w16cid_ns = self.NAMESPACES["w16cid"]
-        
+
         # Create numbering element with all namespaces
         numbering = etree.Element(
             f"{{{w_ns}}}numbering",
             nsmap=self.WORD_NAMESPACES,
         )
         numbering.set(f"{{{self.NAMESPACES['mc']}}}Ignorable", "w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14")
-        
-        # Create abstract numbering definition (legal-style multilevel)
+
+        if has_list_numbering:
+            self._add_list_abstract_num(numbering, w_ns, w15_ns)
+
+        if has_heading_numbering:
+            self._add_heading_abstract_num(numbering, w_ns, w15_ns)
+
+        # Create concrete numbering instances
+        if has_list_numbering:
+            num = etree.SubElement(
+                numbering,
+                f"{{{w_ns}}}num",
+                {f"{{{w_ns}}}numId": "1"},
+            )
+            num.set(f"{{{w16cid_ns}}}durableId", "283199500")
+            etree.SubElement(num, f"{{{w_ns}}}abstractNumId", {f"{{{w_ns}}}val": "0"})
+
+        if has_heading_numbering:
+            abstract_id = "1" if has_list_numbering else "0"
+            num_id = "2" if has_list_numbering else "1"
+            num = etree.SubElement(
+                numbering,
+                f"{{{w_ns}}}num",
+                {f"{{{w_ns}}}numId": num_id},
+            )
+            num.set(f"{{{w16cid_ns}}}durableId", "283199501")
+            etree.SubElement(num, f"{{{w_ns}}}abstractNumId", {f"{{{w_ns}}}val": abstract_id})
+
+        return etree.tostring(
+            numbering, xml_declaration=True, encoding="UTF-8", pretty_print=True
+        )
+
+    def _add_list_abstract_num(self, numbering: XMLElement, w_ns: str, w15_ns: str) -> None:
+        """Add the legal-list abstract numbering definition (abstractNumId=0)."""
         abstractNum = etree.SubElement(
             numbering,
             f"{{{w_ns}}}abstractNum",
             {f"{{{w_ns}}}abstractNumId": "0"},
         )
         abstractNum.set(f"{{{w15_ns}}}restartNumberingAfterBreak", "0")
-        
-        # Add nsid
+
         etree.SubElement(abstractNum, f"{{{w_ns}}}nsid", {f"{{{w_ns}}}val": "355246F9"})
-        
-        # Set multilevel type
         etree.SubElement(abstractNum, f"{{{w_ns}}}multiLevelType", {f"{{{w_ns}}}val": "multilevel"})
-        
-        # Add template
         etree.SubElement(abstractNum, f"{{{w_ns}}}tmpl", {f"{{{w_ns}}}val": "2000001F"})
-        
-        # Define all 9 levels (0-8) with legal-style decimal numbering
+
         level_formats = [
-            "%1.",
-            "%1.%2.",
-            "%1.%2.%3.",
-            "%1.%2.%3.%4.",
-            "%1.%2.%3.%4.%5.",
-            "%1.%2.%3.%4.%5.%6.",
-            "%1.%2.%3.%4.%5.%6.%7.",
-            "%1.%2.%3.%4.%5.%6.%7.%8.",
+            "%1.", "%1.%2.", "%1.%2.%3.", "%1.%2.%3.%4.",
+            "%1.%2.%3.%4.%5.", "%1.%2.%3.%4.%5.%6.",
+            "%1.%2.%3.%4.%5.%6.%7.", "%1.%2.%3.%4.%5.%6.%7.%8.",
             "%1.%2.%3.%4.%5.%6.%7.%8.%9.",
         ]
-        
-        # Indentation values (left and hanging) - matches Word's legal numbering
         indents = [
-            (360, 360),
-            (792, 432),
-            (1224, 504),
-            (1728, 648),
-            (2232, 792),
-            (2736, 936),
-            (3240, 1080),
-            (3744, 1224),
+            (360, 360), (792, 432), (1224, 504), (1728, 648),
+            (2232, 792), (2736, 936), (3240, 1080), (3744, 1224),
             (4320, 1440),
         ]
-        
+
         for i, (lvl_text, (left, hanging)) in enumerate(zip(level_formats, indents)):
             lvl = etree.SubElement(
-                abstractNum,
-                f"{{{w_ns}}}lvl",
+                abstractNum, f"{{{w_ns}}}lvl",
                 {f"{{{w_ns}}}ilvl": str(i)},
             )
-            
-            # Start value
             etree.SubElement(lvl, f"{{{w_ns}}}start", {f"{{{w_ns}}}val": "1"})
-            
-            # Number format (decimal)
             etree.SubElement(lvl, f"{{{w_ns}}}numFmt", {f"{{{w_ns}}}val": "decimal"})
-            
-            # Level text (e.g., "%1.", "%1.%2.", etc.)
             etree.SubElement(lvl, f"{{{w_ns}}}lvlText", {f"{{{w_ns}}}val": lvl_text})
-            
-            # Justification (left-aligned)
             etree.SubElement(lvl, f"{{{w_ns}}}lvlJc", {f"{{{w_ns}}}val": "left"})
-            
-            # Paragraph properties with indentation
             pPr = etree.SubElement(lvl, f"{{{w_ns}}}pPr")
             etree.SubElement(
-                pPr,
-                f"{{{w_ns}}}ind",
-                {
-                    f"{{{w_ns}}}left": str(left),
-                    f"{{{w_ns}}}hanging": str(hanging),
-                },
+                pPr, f"{{{w_ns}}}ind",
+                {f"{{{w_ns}}}left": str(left), f"{{{w_ns}}}hanging": str(hanging)},
             )
-        
-        # Create concrete numbering instance (maps to abstractNum)
-        num = etree.SubElement(
+
+    def _add_heading_abstract_num(self, numbering: XMLElement, w_ns: str, w15_ns: str) -> None:
+        """Add the heading-style abstract numbering definition.
+
+        Each level has a pStyle back-reference to HeadingN so that the
+        numbering linkage lives in the style definitions rather than in
+        each paragraph's numPr.
+        """
+        # Use abstractNumId=1 if list numbering already claimed 0, else 0
+        existing = numbering.findall(f"{{{w_ns}}}abstractNum")
+        abstract_id = str(len(existing))
+
+        abstractNum = etree.SubElement(
             numbering,
-            f"{{{w_ns}}}num",
-            {f"{{{w_ns}}}numId": "1"},
+            f"{{{w_ns}}}abstractNum",
+            {f"{{{w_ns}}}abstractNumId": abstract_id},
         )
-        num.set(f"{{{w16cid_ns}}}durableId", "283199500")
-        
-        # Link to abstract numbering
-        etree.SubElement(num, f"{{{w_ns}}}abstractNumId", {f"{{{w_ns}}}val": "0"})
-        
-        return etree.tostring(
-            numbering, xml_declaration=True, encoding="UTF-8", pretty_print=True
-        )
+        abstractNum.set(f"{{{w15_ns}}}restartNumberingAfterBreak", "0")
+
+        etree.SubElement(abstractNum, f"{{{w_ns}}}nsid", {f"{{{w_ns}}}val": "4A2E17B8"})
+        etree.SubElement(abstractNum, f"{{{w_ns}}}multiLevelType", {f"{{{w_ns}}}val": "multilevel"})
+        etree.SubElement(abstractNum, f"{{{w_ns}}}tmpl", {f"{{{w_ns}}}val": "0409001D"})
+
+        # Level definitions: (numFmt, lvlText, pStyle, jc)
+        heading_levels = [
+            ("decimal", "%1", "Heading1", "left"),
+            ("decimal", "%1.%2", "Heading2", "left"),
+            ("lowerLetter", "(%3)", "Heading3", "left"),
+            ("lowerRoman", "(%4)", "Heading4", "left"),
+        ]
+        indents = [(432, 432), (576, 576), (720, 720), (864, 864)]
+
+        for i, ((num_fmt, lvl_text, p_style, jc), (left, hanging)) in enumerate(
+            zip(heading_levels, indents)
+        ):
+            lvl = etree.SubElement(
+                abstractNum, f"{{{w_ns}}}lvl",
+                {f"{{{w_ns}}}ilvl": str(i)},
+            )
+            etree.SubElement(lvl, f"{{{w_ns}}}start", {f"{{{w_ns}}}val": "1"})
+            etree.SubElement(lvl, f"{{{w_ns}}}numFmt", {f"{{{w_ns}}}val": num_fmt})
+            etree.SubElement(lvl, f"{{{w_ns}}}pStyle", {f"{{{w_ns}}}val": p_style})
+            etree.SubElement(lvl, f"{{{w_ns}}}lvlText", {f"{{{w_ns}}}val": lvl_text})
+            etree.SubElement(lvl, f"{{{w_ns}}}lvlJc", {f"{{{w_ns}}}val": jc})
+            pPr = etree.SubElement(lvl, f"{{{w_ns}}}pPr")
+            etree.SubElement(
+                pPr, f"{{{w_ns}}}ind",
+                {f"{{{w_ns}}}left": str(left), f"{{{w_ns}}}hanging": str(hanging)},
+            )
     
-    def _create_styles(self) -> bytes:
-        """Create word/styles.xml with minimal defaults and ListParagraph."""
+    def _create_styles(self, has_heading_numbering: bool = False) -> bytes:
+        """Create word/styles.xml with minimal defaults, ListParagraph, and optional headings."""
         w_ns = self.NAMESPACES["w"]
 
         styles = etree.Element(
@@ -1314,6 +1359,72 @@ class DocumentGenerator:
         p_pr = etree.SubElement(style, f"{{{w_ns}}}pPr")
         etree.SubElement(p_pr, f"{{{w_ns}}}contextualSpacing")
 
+        if has_heading_numbering:
+            self._add_heading_styles(styles, w_ns)
+
         return etree.tostring(
             styles, xml_declaration=True, encoding="UTF-8", pretty_print=True
         )
+
+    def _add_heading_styles(self, styles: XMLElement, w_ns: str) -> None:
+        """Add Heading1-Heading4 styles with embedded numPr for styled numbering.
+
+        The numbering linkage lives inside the style: each heading style
+        contains a <w:numPr> with the appropriate ilvl, and the matching
+        abstractNum levels contain <w:pStyle> back-references.  Paragraphs
+        only need ``<w:pStyle w:val="HeadingN"/>``, no explicit numPr.
+        """
+        # Determine the numId for heading numbering
+        # If list numbering is also present, heading numbering uses numId=2
+        has_list = any(p.numbering for p in self.spec.paragraphs)
+        heading_num_id = "2" if has_list else "1"
+
+        # (styleId, display name, ilvl, sz, bold, spacing_before, spacing_after)
+        heading_defs = [
+            ("Heading1", "heading 1", 0, "32", True, 240, 0),
+            ("Heading2", "heading 2", 1, "28", True, 200, 0),
+            ("Heading3", "heading 3", 2, "24", False, 160, 0),
+            ("Heading4", "heading 4", 3, "22", False, 120, 0),
+        ]
+
+        for style_id, name, ilvl, sz, bold, sp_before, sp_after in heading_defs:
+            style = etree.SubElement(
+                styles,
+                f"{{{w_ns}}}style",
+                {f"{{{w_ns}}}type": "paragraph", f"{{{w_ns}}}styleId": style_id},
+            )
+            etree.SubElement(style, f"{{{w_ns}}}name", {f"{{{w_ns}}}val": name})
+            etree.SubElement(style, f"{{{w_ns}}}basedOn", {f"{{{w_ns}}}val": "Normal"})
+            etree.SubElement(style, f"{{{w_ns}}}next", {f"{{{w_ns}}}val": "Normal"})
+            etree.SubElement(style, f"{{{w_ns}}}qFormat")
+
+            # Paragraph properties with numbering reference
+            pPr = etree.SubElement(style, f"{{{w_ns}}}pPr")
+            etree.SubElement(pPr, f"{{{w_ns}}}keepNext")
+            etree.SubElement(pPr, f"{{{w_ns}}}keepLines")
+
+            numPr = etree.SubElement(pPr, f"{{{w_ns}}}numPr")
+            if ilvl > 0:
+                etree.SubElement(numPr, f"{{{w_ns}}}ilvl", {f"{{{w_ns}}}val": str(ilvl)})
+            etree.SubElement(numPr, f"{{{w_ns}}}numId", {f"{{{w_ns}}}val": heading_num_id})
+
+            spacing = etree.SubElement(pPr, f"{{{w_ns}}}spacing")
+            spacing.set(f"{{{w_ns}}}before", str(sp_before))
+            spacing.set(f"{{{w_ns}}}after", str(sp_after))
+
+            etree.SubElement(
+                pPr, f"{{{w_ns}}}outlineLvl", {f"{{{w_ns}}}val": str(ilvl)}
+            )
+
+            # Run properties (font size, bold)
+            rPr = etree.SubElement(style, f"{{{w_ns}}}rPr")
+            rFonts = etree.SubElement(rPr, f"{{{w_ns}}}rFonts")
+            rFonts.set(f"{{{w_ns}}}asciiTheme", "majorHAnsi")
+            rFonts.set(f"{{{w_ns}}}eastAsiaTheme", "majorEastAsia")
+            rFonts.set(f"{{{w_ns}}}hAnsiTheme", "majorHAnsi")
+            rFonts.set(f"{{{w_ns}}}cstheme", "majorBidi")
+            if bold:
+                etree.SubElement(rPr, f"{{{w_ns}}}b")
+                etree.SubElement(rPr, f"{{{w_ns}}}bCs")
+            etree.SubElement(rPr, f"{{{w_ns}}}sz", {f"{{{w_ns}}}val": sz})
+            etree.SubElement(rPr, f"{{{w_ns}}}szCs", {f"{{{w_ns}}}val": sz})

@@ -22,6 +22,7 @@ See also: `docs/phase-1-prd.md` for detailed Phase 1 requirements and manual-wor
    - Focus on modern comments only (legacy comments can be deferred).
 3. **Complex numbering**
    - Multi-level numbering patterns suitable for legal-style clauses.
+   - Two patterns: legal-list (explicit `numPr` per paragraph) and heading-based/styled (numbering linked via style definitions).
 
 ### Phase 2 (deferred)
 

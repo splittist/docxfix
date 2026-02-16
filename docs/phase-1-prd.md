@@ -214,6 +214,7 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 
 - ✓ Combined fixture scenarios (tracked changes + comments in same paragraph).
 - ✓ 9 combined integration tests passing (81 total).
+- ✓ Heading-based (styled) numbering support (Heading1-Heading4 with numPr in styles.xml).
 - Compatibility lane/checklist baseline run.
 - Publish Phase 1 user/developer docs.
 

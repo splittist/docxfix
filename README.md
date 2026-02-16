@@ -8,7 +8,7 @@ Examples include:
 
 * comments, including 'modern' comments with rich text, replies and 'resolved/done' status
 
-* complex automatic numbering
+* complex automatic numbering (legal-list and heading-based/styled patterns)
 
 * highlighted text
 
@@ -52,36 +52,35 @@ pip install -e ".[dev]"
 ### Running Tests
 
 ```bash
-pytest tests/
+uv run pytest                                  # all tests
+uv run pytest tests/test_generator.py          # single file
+uv run pytest -k "test_heading_numbering"      # by keyword
 ```
 
 ### Linting and Formatting
 
 ```bash
 # Check code quality
-ruff check src/ tests/
+uv run ruff check src/ tests/
 
 # Format code
-ruff format src/ tests/
+uv run ruff format src/ tests/
 ```
 
 ### CLI Usage
 
 ```bash
 # Get help
-docxfix --help
+uv run docxfix --help
 
 # Display version and info
-docxfix info
+uv run docxfix info
 
 # Create a docx fixture
-docxfix create output.docx
+uv run docxfix create output.docx
 
 # Create with verbose output
-docxfix create output.docx --verbose
-
-# Create using a template
-docxfix create output.docx --template template.docx
+uv run docxfix create output.docx --verbose
 ```
 
 ## Project Structure
@@ -95,11 +94,11 @@ docxfix/
 │   └── docxfix/
 │       ├── __init__.py      # Package initialization
 │       ├── cli.py           # CLI application (Typer)
+│       ├── spec.py          # Typed spec model (DocumentSpec, Paragraph, etc.)
+│       ├── generator.py     # Spec → OOXML ZIP generator
+│       ├── validator.py     # Post-generation validation
 │       └── xml_utils.py     # XML manipulation utilities (lxml)
-├── tests/
-│   ├── conftest.py          # pytest configuration
-│   ├── test_cli.py          # CLI tests
-│   └── test_xml_utils.py    # XML utilities tests (with syrupy)
+├── tests/                   # pytest suite (92 tests)
 └── pyproject.toml           # Project configuration
 ```
 
