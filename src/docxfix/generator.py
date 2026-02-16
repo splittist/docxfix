@@ -4,7 +4,7 @@ import base64
 import io
 import random
 import zipfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from lxml import etree
@@ -496,7 +496,9 @@ class DocumentGenerator:
             numId.set(f"{{{w_ns}}}val", str(para_spec.numbering.numbering_id))
 
         # Handle different content types
-        if para_spec.comments:
+        if para_spec.comments and para_spec.tracked_changes:
+            self._add_paragraph_with_comments_and_tracked_changes(para, para_spec)
+        elif para_spec.comments:
             self._add_paragraph_with_comments(para, para_spec)
         elif para_spec.tracked_changes:
             self._add_paragraph_with_tracked_changes(para, para_spec)
@@ -625,6 +627,146 @@ class DocumentGenerator:
                 text_elem.set(
                     "{http://www.w3.org/XML/1998/namespace}space", "preserve"
                 )
+
+    def _add_paragraph_with_comments_and_tracked_changes(
+        self, para: XMLElement, para_spec: Paragraph
+    ) -> None:
+        """Add paragraph content with both comments and tracked changes.
+
+        Merges comment anchoring and tracked-change positioning into a single
+        walk over the base text.  Events (comment-start, comment-end,
+        insertion, deletion) are collected with their text positions, sorted,
+        and emitted in order so both features coexist in one paragraph.
+        """
+        w_ns = self.NAMESPACES["w"]
+        base_text = para_spec.text
+
+        # --- 1. Build tracked-change events (same logic as _add_paragraph_with_tracked_changes) ---
+        tc_events: list[tuple[int, str, object]] = []
+        for change in para_spec.tracked_changes:
+            if change.change_type == ChangeType.DELETION:
+                idx = base_text.find(change.text)
+                if idx == -1:
+                    tc_events.append((len(base_text), "del", change))
+                else:
+                    tc_events.append((idx, "del", change))
+            else:
+                if change.insert_after:
+                    idx = base_text.find(change.insert_after)
+                    if idx != -1:
+                        tc_events.append((idx + len(change.insert_after), "ins", change))
+                    else:
+                        tc_events.append((len(base_text), "ins", change))
+                else:
+                    tc_events.append((len(base_text), "ins", change))
+
+        # --- 2. Build comment events ---
+        # Each comment produces a "comment_start" and "comment_end" event.
+        # We also track metadata so we can emit commentRangeEnd + reference runs.
+        comment_events: list[tuple[int, str, object]] = []
+        comment_infos: list[dict] = []  # parallel to para_spec.comments
+
+        for comment in para_spec.comments:
+            anchor_text = comment.anchor_text
+            if anchor_text in base_text:
+                start = base_text.index(anchor_text)
+                end = start + len(anchor_text)
+            else:
+                start = 0
+                end = len(base_text)
+
+            # Register comment metadata (same as _add_paragraph_with_comments)
+            comment_id = str(self._comment_counter)
+            parent_para_id = self._generate_hex_id(8).upper()
+            durable_id = parent_para_id
+
+            self._comment_metadata.append({
+                "id": comment_id,
+                "para_id": parent_para_id,
+                "durable_id": durable_id,
+                "author": comment.author,
+                "date": comment.date,
+                "text": comment.text,
+                "resolved": comment.resolved,
+                "parent_para_id": None,
+            })
+            self._comment_counter += 1
+
+            reply_ids = []
+            for reply in comment.replies:
+                reply_id = str(self._comment_counter)
+                reply_para_id = self._generate_hex_id(8).upper()
+                reply_durable_id = self._generate_hex_id(8).upper()
+                self._comment_metadata.append({
+                    "id": reply_id,
+                    "para_id": reply_para_id,
+                    "durable_id": reply_durable_id,
+                    "author": reply.author,
+                    "date": reply.date,
+                    "text": reply.text,
+                    "resolved": comment.resolved,
+                    "parent_para_id": parent_para_id,
+                })
+                reply_ids.append(reply_id)
+                self._comment_counter += 1
+
+            info = {"comment_id": comment_id, "reply_ids": reply_ids}
+            comment_infos.append(info)
+
+            comment_events.append((start, "comment_start", info))
+            comment_events.append((end, "comment_end", info))
+
+        # --- 3. Merge all events and sort ---
+        # Priority within the same position:
+        #   comment_start (0) < ins (1) < del (2) < comment_end (3)
+        # This ensures markers wrap around content correctly.
+        ORDER = {"comment_start": 0, "ins": 1, "del": 2, "comment_end": 3}
+        all_events: list[tuple[int, str, object]] = tc_events + comment_events
+        all_events.sort(key=lambda e: (e[0], ORDER.get(e[1], 5)))
+
+        # --- 4. Walk and emit ---
+        cursor = 0
+        for pos, kind, payload in all_events:
+            if kind == "comment_start":
+                # Emit any plain text before the comment starts
+                if pos > cursor:
+                    self._add_text_run(para, base_text[cursor:pos])
+                    cursor = pos
+                # Emit commentRangeStart for main + replies
+                etree.SubElement(para, f"{{{w_ns}}}commentRangeStart", {f"{{{w_ns}}}id": payload["comment_id"]})
+                for rid in payload["reply_ids"]:
+                    etree.SubElement(para, f"{{{w_ns}}}commentRangeStart", {f"{{{w_ns}}}id": rid})
+
+            elif kind == "comment_end":
+                # Emit any plain text before the comment ends
+                if pos > cursor:
+                    self._add_text_run(para, base_text[cursor:pos])
+                    cursor = pos
+                # Emit commentRangeEnd + reference runs
+                etree.SubElement(para, f"{{{w_ns}}}commentRangeEnd", {f"{{{w_ns}}}id": payload["comment_id"]})
+                for rid in payload["reply_ids"]:
+                    etree.SubElement(para, f"{{{w_ns}}}commentRangeEnd", {f"{{{w_ns}}}id": rid})
+                run = etree.SubElement(para, f"{{{w_ns}}}r")
+                self._add_comment_reference_run(run, payload["comment_id"])
+                for rid in payload["reply_ids"]:
+                    run = etree.SubElement(para, f"{{{w_ns}}}r")
+                    self._add_comment_reference_run(run, rid)
+
+            elif kind == "del":
+                if pos > cursor:
+                    self._add_text_run(para, base_text[cursor:pos])
+                self._emit_tracked_change(para, payload)
+                cursor = pos + len(payload.text)
+
+            else:  # "ins"
+                if pos > cursor:
+                    self._add_text_run(para, base_text[cursor:pos])
+                    cursor = pos
+                self._emit_tracked_change(para, payload)
+
+        # Emit remaining plain text
+        if cursor < len(base_text):
+            self._add_text_run(para, base_text[cursor:])
 
     def _add_paragraph_with_comments(self, para: XMLElement, para_spec: Paragraph) -> None:
         """Add a paragraph with comment anchoring."""
@@ -933,7 +1075,7 @@ class DocumentGenerator:
 
     def _create_core_properties(self) -> bytes:
         """Create docProps/core.xml."""
-        now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         core_xml = (
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
             "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" "
@@ -1164,6 +1306,7 @@ class DocumentGenerator:
             },
         )
         etree.SubElement(style, f"{{{w_ns}}}name", {f"{{{w_ns}}}val": "List Paragraph"})
+        etree.SubElement(style, f"{{{w_ns}}}basedOn", {f"{{{w_ns}}}val": "Normal"})
         etree.SubElement(style, f"{{{w_ns}}}uiPriority", {f"{{{w_ns}}}val": "34"})
         etree.SubElement(style, f"{{{w_ns}}}semiHidden")
         etree.SubElement(style, f"{{{w_ns}}}unhideWhenUsed")

@@ -316,3 +316,41 @@
   - Publish Phase 1 user/developer docs
 - Pre-existing styles.xml test failure in `test_numbering_generator.py::test_styles_xml_structure` should be investigated
 
+---
+
+## 2026-02-16 - Combined Tracked Changes + Comments Fix (M5 Partial)
+
+**What was done:**
+- Fixed critical bug: paragraphs with both `comments` and `tracked_changes` only took the comments path due to `if/elif` dispatch, silently dropping tracked changes
+- Added `_add_paragraph_with_comments_and_tracked_changes()` method to generator.py:
+  - Merges comment anchoring and tracked-change positioning in a single walk over the base text
+  - Collects events (comment_start, comment_end, ins, del) with their text positions
+  - Sorts events by position with proper priority ordering (comment_start < ins < del < comment_end)
+  - Emits plain text runs, comment markers, and tracked change elements in correct document order
+- Updated dispatch in `_add_paragraph()` to check for combined case first
+- Included two pre-existing unstaged fixes:
+  - Added `basedOn` element to ListParagraph style in `_create_styles()` (fixes styles.xml test)
+  - Replaced deprecated `datetime.utcnow()` with `datetime.now(timezone.utc)`
+
+**Test results:**
+- ✅ All 81 tests passing (78 previously passing + 3 previously failing combined integration tests)
+- 9 combined integration tests all pass:
+  - test_tracked_changes_and_comments_in_same_paragraph
+  - test_tracked_changes_and_comments_across_paragraphs
+  - test_tracked_changes_in_numbered_paragraph
+  - test_comments_on_numbered_paragraphs
+  - test_all_features_combined
+  - test_all_features_combined_validates
+  - test_content_types_include_all_parts
+  - test_relationships_include_all_parts
+  - test_unique_ids_across_features
+
+**Files changed:**
+- `src/docxfix/generator.py` - new combined method + dispatch fix + unstaged fixes
+- `docs/phase-1-prd.md` - updated M5 status
+- `PROGRESS.txt` - this entry
+
+**What's remaining for M5:**
+- Compatibility lane/checklist baseline run
+- Publish Phase 1 user/developer docs
+

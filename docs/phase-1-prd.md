@@ -210,11 +210,18 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 - All 63 tests passing
 - Numbering structure matches golden corpus expectations (legal-list.docx pattern)
 
-### M5: Integration hardening + docs
+### M5: Integration hardening + docs (IN PROGRESS)
 
-- Combined fixture scenarios.
+- ✓ Combined fixture scenarios (tracked changes + comments in same paragraph).
+- ✓ 9 combined integration tests passing (81 total).
 - Compatibility lane/checklist baseline run.
 - Publish Phase 1 user/developer docs.
+
+**Implementation notes (combined fixtures):**
+- Fixed `if/elif` bug in `_add_paragraph()` that silently dropped tracked changes when comments were present
+- Added `_add_paragraph_with_comments_and_tracked_changes()` method that merges both features in a single text walk
+- Events (comment-start, comment-end, insertion, deletion) are sorted by position and emitted in document order
+- Includes existing unstaged fixes: `basedOn` element in styles.xml, `datetime.now(timezone.utc)` deprecation fix
 
 ## 8. Success Metrics
 
