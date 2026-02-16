@@ -83,6 +83,23 @@ uv run docxfix create output.docx
 uv run docxfix create output.docx --verbose
 ```
 
+## Visual Verification (Windows)
+
+On Windows with Microsoft Word installed, you can export generated `.docx` files to PDF for visual inspection. This renders the document through Word's own engine, showing tracked changes, comment balloons, and numbering exactly as an end user would see them.
+
+```bash
+# Install the Windows-only extra
+uv pip install -e ".[win]"
+
+# Generate a fixture and export to PDF
+uv run docxfix create scratch_out/test.docx
+python scripts/export_pdf.py scratch_out/test.docx
+
+# PDF is written to scratch_out/pdf/test.pdf
+```
+
+The script accepts individual `.docx` files or directories (defaults to `scratch_out/`). PDFs include full markup — tracked changes and comments are visible in the output.
+
 ## Project Structure
 
 ```txt
@@ -90,6 +107,7 @@ docxfix/
 ├── corpus/                # Golden fixtures with sidecar descriptions
 ├── docs/                  # Project docs and PRD
 ├── schemas/               # OOXML schema reference set
+├── scripts/               # Utility scripts (PDF export, etc.)
 ├── src/
 │   └── docxfix/
 │       ├── __init__.py      # Package initialization
