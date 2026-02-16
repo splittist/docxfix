@@ -9,7 +9,14 @@ from pathlib import Path
 
 from lxml import etree
 
-from docxfix.spec import ChangeType, Comment, DocumentSpec, Paragraph
+from docxfix.spec import (
+    ChangeType,
+    Comment,
+    DocumentSpec,
+    PageOrientation,
+    Paragraph,
+    SectionSpec,
+)
 from docxfix.xml_utils import XMLElement
 
 SETTINGS_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -89,7 +96,9 @@ class DocumentGenerator:
         self._revision_counter = 0
         self._comment_counter = 0
         self._comment_metadata = []  # Track comment metadata for multi-part generation
-        
+        self._section_layout = self._normalize_sections()
+        self._section_header_footer_refs: dict[int, dict[str, dict[str, str]]] = {}
+
         # Initialize random seed if specified
         if spec.seed is not None:
             random.seed(spec.seed)
@@ -102,12 +111,12 @@ class DocumentGenerator:
             output_path: Path where the .docx file will be created
         """
         output_path = Path(output_path)
-        
+
         # Check if document has comments
         has_comments = any(
             para.comments for para in self.spec.paragraphs
         )
-        
+
         # Check if document has numbering
         has_numbering = any(
             para.numbering for para in self.spec.paragraphs
@@ -119,18 +128,22 @@ class DocumentGenerator:
         )
 
         # Styles and numbering parts needed for either type
-        needs_styles = has_numbering or has_heading_numbering
         needs_numbering = has_numbering or has_heading_numbering
+        section_parts = self._build_section_part_manifest()
 
         # Create a ZIP file (docx is a ZIP archive)
         with zipfile.ZipFile(
             output_path, "w", zipfile.ZIP_DEFLATED
         ) as docx_zip:
             # Add required files
-            docx_zip.writestr("[Content_Types].xml", self._create_content_types(has_comments, needs_numbering))
+            docx_zip.writestr(
+                "[Content_Types].xml",
+                self._create_content_types(has_comments, needs_numbering, section_parts),
+            )
             docx_zip.writestr("_rels/.rels", self._create_rels())
             docx_zip.writestr(
-                "word/_rels/document.xml.rels", self._create_document_rels(has_comments, needs_numbering)
+                "word/_rels/document.xml.rels",
+                self._create_document_rels(has_comments, needs_numbering, section_parts),
             )
             docx_zip.writestr("word/document.xml", self._create_document())
             docx_zip.writestr("word/settings.xml", self._create_settings())
@@ -141,20 +154,29 @@ class DocumentGenerator:
             docx_zip.writestr("word/theme/theme1.xml", self._create_theme())
             docx_zip.writestr("docProps/core.xml", self._create_core_properties())
             docx_zip.writestr("docProps/app.xml", self._create_app_properties())
-            
+
+            for part in section_parts:
+                docx_zip.writestr(part["path"], self._create_header_footer_part(part["kind"], part["text"]))
+
             # Add comment files if needed
             if has_comments:
                 docx_zip.writestr("word/comments.xml", self._create_comments())
                 docx_zip.writestr("word/commentsExtended.xml", self._create_comments_extended())
                 docx_zip.writestr("word/commentsIds.xml", self._create_comments_ids())
-            
+
             # Add numbering files if needed
             if needs_numbering:
                 docx_zip.writestr("word/numbering.xml", self._create_numbering(has_numbering, has_heading_numbering))
                 docx_zip.writestr("word/styles.xml", self._create_styles(has_heading_numbering))
 
-    def _create_content_types(self, has_comments: bool = False, has_numbering: bool = False) -> bytes:
+    def _create_content_types(
+        self,
+        has_comments: bool = False,
+        has_numbering: bool = False,
+        section_parts: list[dict] | None = None,
+    ) -> bytes:
         """Create [Content_Types].xml."""
+        section_parts = section_parts or []
         types = etree.Element(
             "Types",
             xmlns="http://schemas.openxmlformats.org/package/2006/content-types",
@@ -180,7 +202,7 @@ class DocumentGenerator:
                 "wordprocessingml.document.main+xml"
             ),
         )
-        
+
         # Add comment content types if needed
         if has_comments:
             etree.SubElement(
@@ -210,7 +232,7 @@ class DocumentGenerator:
                     "wordprocessingml.commentsIds+xml"
                 ),
             )
-        
+
         # Add numbering and styles content types if needed
         if has_numbering:
             etree.SubElement(
@@ -230,6 +252,14 @@ class DocumentGenerator:
                     "application/vnd.openxmlformats-officedocument."
                     "wordprocessingml.styles+xml"
                 ),
+            )
+
+        for part in section_parts:
+            etree.SubElement(
+                types,
+                "Override",
+                PartName=f"/word/{part['path'].split('/', 1)[1]}",
+                ContentType=part["content_type"],
             )
 
         # Add Word compatibility parts
@@ -302,7 +332,7 @@ class DocumentGenerator:
                 "extended-properties+xml"
             ),
         )
-        
+
         return etree.tostring(
             types, xml_declaration=True, encoding="UTF-8", pretty_print=True
         )
@@ -347,66 +377,78 @@ class DocumentGenerator:
             rels, xml_declaration=True, encoding="UTF-8", pretty_print=True
         )
 
-    def _create_document_rels(self, has_comments: bool = False, has_numbering: bool = False) -> bytes:
+    def _create_document_rels(
+        self,
+        has_comments: bool = False,
+        has_numbering: bool = False,
+        section_parts: list[dict] | None = None,
+    ) -> bytes:
         """Create word/_rels/document.xml.rels."""
+        section_parts = section_parts or []
         rels = etree.Element(
             "Relationships",
             xmlns="http://schemas.openxmlformats.org/package/2006/relationships",
         )
-        
+
+        next_id = 1
+
         # Add comment relationships if needed
         if has_comments:
             etree.SubElement(
                 rels,
                 "Relationship",
-                Id="rId1",
+                Id=f"rId{next_id}",
                 Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
                 Target="comments.xml",
             )
+            next_id += 1
             etree.SubElement(
                 rels,
                 "Relationship",
-                Id="rId2",
+                Id=f"rId{next_id}",
                 Type="http://schemas.microsoft.com/office/2011/relationships/commentsExtended",
                 Target="commentsExtended.xml",
             )
+            next_id += 1
             etree.SubElement(
                 rels,
                 "Relationship",
-                Id="rId3",
+                Id=f"rId{next_id}",
                 Type="http://schemas.microsoft.com/office/2016/09/relationships/commentsIds",
                 Target="commentsIds.xml",
             )
+            next_id += 1
 
         # Add numbering and styles relationships if needed
         if has_numbering:
-            # Adjust IDs based on whether comments are present
-            num_id = "rId4" if has_comments else "rId1"
-            styles_id = "rId5" if has_comments else "rId2"
-            
             etree.SubElement(
                 rels,
                 "Relationship",
-                Id=num_id,
+                Id=f"rId{next_id}",
                 Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
                 Target="numbering.xml",
             )
+            next_id += 1
             etree.SubElement(
                 rels,
                 "Relationship",
-                Id=styles_id,
+                Id=f"rId{next_id}",
                 Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
                 Target="styles.xml",
             )
+            next_id += 1
 
-        if has_comments and has_numbering:
-            next_id = 6
-        elif has_comments:
-            next_id = 4
-        elif has_numbering:
-            next_id = 3
-        else:
-            next_id = 1
+        for part in section_parts:
+            rid = f"rId{next_id}"
+            next_id += 1
+            etree.SubElement(
+                rels,
+                "Relationship",
+                Id=rid,
+                Type=part["relationship_type"],
+                Target=part["target"],
+            )
+            self._section_header_footer_refs[part["section_index"]][part["kind"]][part["variant"]] = rid
 
         etree.SubElement(
             rels,
@@ -450,7 +492,7 @@ class DocumentGenerator:
             Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
             Target="theme/theme1.xml",
         )
-        
+
         return etree.tostring(
             rels, xml_declaration=True, encoding="UTF-8", pretty_print=True
         )
@@ -464,17 +506,28 @@ class DocumentGenerator:
         document.set(f"{{{self.NAMESPACES['mc']}}}Ignorable", "w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14")
         body = etree.SubElement(document, f"{{{self.NAMESPACES['w']}}}body")
 
-        # Add each paragraph
-        for para_spec in self.spec.paragraphs:
-            self._add_paragraph(body, para_spec)
+        sections = self._section_layout
+        paragraph_count = len(self.spec.paragraphs)
+        section_starts = [section.start_paragraph for section in sections] + [paragraph_count]
 
-        self._add_section_properties(body)
+        boundary_to_section: dict[int, SectionSpec] = {}
+        for idx in range(len(sections) - 1):
+            boundary_to_section[section_starts[idx + 1] - 1] = sections[idx]
+
+        # Add each paragraph
+        for para_index, para_spec in enumerate(self.spec.paragraphs):
+            para = self._add_paragraph(body, para_spec)
+            if para_index in boundary_to_section:
+                self._add_section_properties(para, boundary_to_section[para_index], is_body_level=False)
+
+        self._add_section_properties(body, sections[-1], is_body_level=True)
 
         return etree.tostring(
             document, xml_declaration=True, encoding="UTF-8", pretty_print=True
         )
 
-    def _add_paragraph(self, body: XMLElement, para_spec: Paragraph) -> None:
+    def _add_paragraph(self, body: XMLElement, para_spec: Paragraph) -> XMLElement:
+
         """Add a paragraph to the body."""
         w_ns = self.NAMESPACES["w"]
         w14_ns = self.NAMESPACES["w14"]
@@ -520,6 +573,8 @@ class DocumentGenerator:
             run = etree.SubElement(para, f"{{{w_ns}}}r")
             text_elem = etree.SubElement(run, f"{{{w_ns}}}t")
             text_elem.text = para_spec.text
+
+        return para
 
     def _add_text_run(self, parent: XMLElement, text: str) -> None:
         """Add a plain text run, setting xml:space='preserve' when needed."""
@@ -898,13 +953,120 @@ class DocumentGenerator:
         sz_cs.set(f"{{{w_ns}}}val", "24")
         etree.SubElement(run, f"{{{w_ns}}}commentReference", {f"{{{w_ns}}}id": comment_id})
 
-    def _add_section_properties(self, body: XMLElement) -> None:
-        """Add a minimal section properties element for Word compatibility."""
+    def _normalize_sections(self) -> list[SectionSpec]:
+        """Return sections sorted by start paragraph with an initial section."""
+        paragraph_count = len(self.spec.paragraphs)
+        sections = sorted(self.spec.sections, key=lambda section: section.start_paragraph)
+        normalized: list[SectionSpec] = []
+        seen: set[int] = set()
+        for section in sections:
+            if section.start_paragraph >= paragraph_count and paragraph_count > 0:
+                continue
+            if section.start_paragraph in seen:
+                continue
+            seen.add(section.start_paragraph)
+            normalized.append(section)
+
+        if not normalized:
+            normalized = [SectionSpec(start_paragraph=0)]
+        elif normalized[0].start_paragraph != 0:
+            normalized.insert(0, SectionSpec(start_paragraph=0))
+
+        return normalized
+
+    def _build_section_part_manifest(self) -> list[dict]:
+        """Create section header/footer part metadata and relationship mapping."""
+        relationship_type_map = {
+            "header": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header",
+            "footer": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer",
+        }
+        content_type_map = {
+            "header": "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml",
+            "footer": "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",
+        }
+
+        manifest: list[dict] = []
+        self._section_header_footer_refs = {}
+
+        for section_index, section in enumerate(self._section_layout):
+            refs: dict[str, dict[str, str]] = {"header": {}, "footer": {}}
+            for kind, set_obj in (("header", section.headers), ("footer", section.footers)):
+                for variant in ("default", "first", "even"):
+                    text = getattr(set_obj, variant)
+                    if text is None:
+                        continue
+                    part_num = len(manifest) + 1
+                    part_name = f"{kind}{part_num}.xml"
+                    manifest.append(
+                        {
+                            "section_index": section_index,
+                            "kind": kind,
+                            "variant": variant,
+                            "path": f"word/{part_name}",
+                            "target": part_name,
+                            "text": text,
+                            "relationship_type": relationship_type_map[kind],
+                            "content_type": content_type_map[kind],
+                        }
+                    )
+                    refs[kind][variant] = ""
+            self._section_header_footer_refs[section_index] = refs
+
+        return manifest
+
+    def _add_section_properties(
+        self,
+        parent: XMLElement,
+        section: SectionSpec,
+        *,
+        is_body_level: bool,
+    ) -> None:
+        """Add section properties to paragraph boundary or body."""
         w_ns = self.NAMESPACES["w"]
-        sect_pr = etree.SubElement(body, f"{{{w_ns}}}sectPr")
+        r_ns = self.NAMESPACES["r"]
+
+        if is_body_level:
+            sect_pr = etree.SubElement(parent, f"{{{w_ns}}}sectPr")
+        else:
+            p_pr = parent.find(f"{{{w_ns}}}pPr")
+            if p_pr is None:
+                p_pr = etree.SubElement(parent, f"{{{w_ns}}}pPr")
+            sect_pr = etree.SubElement(p_pr, f"{{{w_ns}}}sectPr")
+            etree.SubElement(sect_pr, f"{{{w_ns}}}type", {f"{{{w_ns}}}val": section.break_type})
+
+        section_index = self._section_layout.index(section)
+        refs = self._section_header_footer_refs.get(section_index, {"header": {}, "footer": {}})
+
+        for kind, ref_type in (("header", "headerReference"), ("footer", "footerReference")):
+            for variant, rel_type in (("default", "default"), ("first", "first"), ("even", "even")):
+                rid = refs.get(kind, {}).get(variant)
+                if rid:
+                    etree.SubElement(
+                        sect_pr,
+                        f"{{{w_ns}}}{ref_type}",
+                        {f"{{{w_ns}}}type": rel_type, f"{{{r_ns}}}id": rid},
+                    )
+
+        if refs.get("header", {}).get("first") or refs.get("footer", {}).get("first"):
+            etree.SubElement(sect_pr, f"{{{w_ns}}}titlePg")
+
+        if section.restart_page_numbering or section.page_number_start is not None:
+            attrs = {}
+            if section.page_number_start is not None:
+                attrs[f"{{{w_ns}}}start"] = str(section.page_number_start)
+            elif section.restart_page_numbering:
+                attrs[f"{{{w_ns}}}start"] = "1"
+            etree.SubElement(sect_pr, f"{{{w_ns}}}pgNumType", attrs)
+
         pg_sz = etree.SubElement(sect_pr, f"{{{w_ns}}}pgSz")
-        pg_sz.set(f"{{{w_ns}}}w", "11906")
-        pg_sz.set(f"{{{w_ns}}}h", "16838")
+        if section.orientation == PageOrientation.LANDSCAPE:
+            pg_sz.set(f"{{{w_ns}}}w", "16838")
+            pg_sz.set(f"{{{w_ns}}}h", "11906")
+            pg_sz.set(f"{{{w_ns}}}orient", "landscape")
+        else:
+            pg_sz.set(f"{{{w_ns}}}w", "11906")
+            pg_sz.set(f"{{{w_ns}}}h", "16838")
+
         pg_mar = etree.SubElement(sect_pr, f"{{{w_ns}}}pgMar")
         pg_mar.set(f"{{{w_ns}}}top", "1440")
         pg_mar.set(f"{{{w_ns}}}right", "1440")
@@ -917,6 +1079,17 @@ class DocumentGenerator:
         cols.set(f"{{{w_ns}}}space", "708")
         doc_grid = etree.SubElement(sect_pr, f"{{{w_ns}}}docGrid")
         doc_grid.set(f"{{{w_ns}}}linePitch", "360")
+
+    def _create_header_footer_part(self, kind: str, text: str) -> bytes:
+        """Create a basic header or footer part containing one paragraph."""
+        w_ns = self.NAMESPACES["w"]
+        tag = "hdr" if kind == "header" else "ftr"
+        part = etree.Element(f"{{{w_ns}}}{tag}", nsmap=self.WORD_NAMESPACES)
+        para = etree.SubElement(part, f"{{{w_ns}}}p")
+        run = etree.SubElement(para, f"{{{w_ns}}}r")
+        text_elem = etree.SubElement(run, f"{{{w_ns}}}t")
+        text_elem.text = text
+        return etree.tostring(part, xml_declaration=True, encoding="UTF-8", pretty_print=True)
 
     def _create_comments(self) -> bytes:
         """Create word/comments.xml."""
@@ -1022,7 +1195,15 @@ class DocumentGenerator:
 
     def _create_settings(self) -> bytes:
         """Create word/settings.xml."""
-        return SETTINGS_XML.encode("utf-8")
+        root = etree.fromstring(SETTINGS_XML.encode("utf-8"))
+        w_ns = self.NAMESPACES["w"]
+        has_even = any(
+            section.headers.even is not None or section.footers.even is not None
+            for section in self._section_layout
+        )
+        if has_even and root.find(f"{{{w_ns}}}evenAndOddHeaders") is None:
+            root.insert(0, etree.Element(f"{{{w_ns}}}evenAndOddHeaders"))
+        return etree.tostring(root, xml_declaration=True, encoding="UTF-8", pretty_print=False)
 
     def _create_web_settings(self) -> bytes:
         """Create word/webSettings.xml."""

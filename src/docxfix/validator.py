@@ -34,6 +34,7 @@ class DocumentValidator:
         """
         self._validate_zip_structure()
         self._validate_xml_wellformedness()
+        self._validate_section_header_footer_integrity()
 
     def _validate_zip_structure(self) -> None:
         """Validate that required files exist in the ZIP archive."""
@@ -64,6 +65,51 @@ class DocumentValidator:
                         raise ValidationError(
                             f"XML syntax error in {filename}: {e}"
                         ) from e
+
+    def _validate_section_header_footer_integrity(self) -> None:
+        """Validate section references to header/footer parts and rels."""
+        w_ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        r_ns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        rel_ns = "http://schemas.openxmlformats.org/package/2006/relationships"
+
+        with zipfile.ZipFile(self.docx_path, "r") as docx_zip:
+            document_root = etree.fromstring(docx_zip.read("word/document.xml"))
+            rels_root = etree.fromstring(docx_zip.read("word/_rels/document.xml.rels"))
+            available_files = set(docx_zip.namelist())
+
+            rel_by_id = {
+                rel.get("Id"): rel
+                for rel in rels_root.findall(f"{{{rel_ns}}}Relationship")
+            }
+
+            section_props = document_root.findall(f".//{{{w_ns}}}sectPr")
+            for sect_pr in section_props:
+                for tag, expected_type in (
+                    ("headerReference", "header"),
+                    ("footerReference", "footer"),
+                ):
+                    for ref in sect_pr.findall(f"{{{w_ns}}}{tag}"):
+                        rid = ref.get(f"{{{r_ns}}}id")
+                        if not rid:
+                            raise ValidationError(f"Section {tag} is missing r:id")
+                        if rid not in rel_by_id:
+                            raise ValidationError(f"Section {tag} references missing relationship: {rid}")
+
+                        rel = rel_by_id[rid]
+                        rel_type = rel.get("Type", "")
+                        if not rel_type.endswith(f"/{expected_type}"):
+                            raise ValidationError(
+                                f"Relationship {rid} type mismatch for {tag}: {rel_type}"
+                            )
+
+                        target = rel.get("Target")
+                        if not target:
+                            raise ValidationError(f"Relationship {rid} has no target")
+                        target_path = f"word/{target.lstrip('./')}"
+                        if target_path not in available_files:
+                            raise ValidationError(
+                                f"Missing section part for {rid}: {target_path}"
+                            )
 
 
 def validate_docx(docx_path: str | Path) -> None:
