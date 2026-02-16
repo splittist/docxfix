@@ -399,3 +399,30 @@
 - `docs/phase-1-prd.md` - noted heading numbering under M5
 - `PROGRESS.txt` - this entry
 
+---
+
+## 2026-02-16 - Phase 1 User/Developer Documentation (M5 Partial)
+
+**What was done:**
+- Created `docs/phase-1-guide.md` — the Phase 1 user and developer documentation
+- Covers all deliverable 7 items from the PRD:
+  - **Usage guide:** CLI commands, Python API walkthrough (spec → generator → ZIP)
+  - **Spec examples:** tracked-change-heavy contract, comment-threaded review doc, legal clause hierarchy
+  - **API reference:** complete field tables for TrackedChange, Comment, CommentReply, NumberedParagraph
+  - **Known limitations:** documented per feature family (tracked changes, comments, numbering, general)
+  - **Compatibility checklist:** automated (CI) and manual (Word verification) items
+  - **Architecture overview:** module responsibilities and conditional OOXML parts
+- Corpus format guide already existed at `corpus/README.md`
+- Updated PRD M5 status to reflect docs completion
+
+**Test results:** All 92 tests passing (no changes to code)
+
+**Files changed:**
+- `docs/phase-1-guide.md` - new Phase 1 documentation
+- `docs/phase-1-prd.md` - updated M5 status
+- `PROGRESS.txt` - this entry
+
+**What's remaining for M5:**
+- Compatibility lane/checklist baseline run (manual Word verification)
+- Once that's done, M5 is complete and Phase 1 PRD is fully delivered
+

@@ -215,8 +215,8 @@ Phase 1 addresses this by providing deterministic-enough fixture generation from
 - ✓ Combined fixture scenarios (tracked changes + comments in same paragraph).
 - ✓ 9 combined integration tests passing (81 total).
 - ✓ Heading-based (styled) numbering support (Heading1-Heading4 with numPr in styles.xml).
+- ✓ Phase 1 user/developer docs published (`docs/phase-1-guide.md`): usage guide, API reference, spec examples, known limitations, compatibility checklist.
 - Compatibility lane/checklist baseline run.
-- Publish Phase 1 user/developer docs.
 
 **Implementation notes (combined fixtures):**
 - Fixed `if/elif` bug in `_add_paragraph()` that silently dropped tracked changes when comments were present
