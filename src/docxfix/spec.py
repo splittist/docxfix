@@ -86,6 +86,42 @@ class NumberedParagraph:
     numbering_id: int = 1
 
 
+class PageOrientation(Enum):
+    """Supported section page orientations."""
+
+    PORTRAIT = "portrait"
+    LANDSCAPE = "landscape"
+
+
+@dataclass
+class HeaderFooterSet:
+    """Section header/footer text variants."""
+
+    default: str | None = None
+    first: str | None = None
+    even: str | None = None
+
+
+@dataclass
+class SectionSpec:
+    """Specification for a section starting at a paragraph index."""
+
+    start_paragraph: int
+    break_type: str = "nextPage"
+    orientation: PageOrientation = PageOrientation.PORTRAIT
+    restart_page_numbering: bool = False
+    page_number_start: int | None = None
+    headers: HeaderFooterSet = field(default_factory=HeaderFooterSet)
+    footers: HeaderFooterSet = field(default_factory=HeaderFooterSet)
+
+    def __post_init__(self) -> None:
+        """Validate section settings."""
+        if self.start_paragraph < 0:
+            raise ValueError("Section start_paragraph must be >= 0")
+        if self.page_number_start is not None and self.page_number_start < 1:
+            raise ValueError("page_number_start must be >= 1")
+
+
 @dataclass
 class Paragraph:
     """Specification for a paragraph in the document."""
@@ -105,6 +141,14 @@ class DocumentSpec:
     title: str = "Test Document"
     author: str = "Test User"
     seed: int | None = None
+    sections: list[SectionSpec] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Ensure section list always includes an initial section."""
+        if not self.sections:
+            self.sections = [SectionSpec(start_paragraph=0)]
+        elif not any(section.start_paragraph == 0 for section in self.sections):
+            self.sections.insert(0, SectionSpec(start_paragraph=0))
 
     def add_paragraph(
         self,
@@ -134,6 +178,30 @@ class DocumentSpec:
                 comments=comments or [],
                 numbering=numbering,
                 heading_level=heading_level,
+            )
+        )
+        return self
+
+    def add_section(
+        self,
+        start_paragraph: int,
+        break_type: str = "nextPage",
+        orientation: PageOrientation = PageOrientation.PORTRAIT,
+        restart_page_numbering: bool = False,
+        page_number_start: int | None = None,
+        headers: HeaderFooterSet | None = None,
+        footers: HeaderFooterSet | None = None,
+    ) -> "DocumentSpec":
+        """Add a section definition to the document."""
+        self.sections.append(
+            SectionSpec(
+                start_paragraph=start_paragraph,
+                break_type=break_type,
+                orientation=orientation,
+                restart_page_numbering=restart_page_numbering,
+                page_number_start=page_number_start,
+                headers=headers or HeaderFooterSet(),
+                footers=footers or HeaderFooterSet(),
             )
         )
         return self

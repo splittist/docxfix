@@ -9,8 +9,11 @@ from docxfix.spec import (
     Comment,
     CommentReply,
     DocumentSpec,
+    HeaderFooterSet,
     NumberedParagraph,
+    PageOrientation,
     Paragraph,
+    SectionSpec,
     TrackedChange,
 )
 
@@ -171,3 +174,28 @@ def test_document_spec_with_seed():
     """Test creating document spec with seed."""
     spec = DocumentSpec(seed=42)
     assert spec.seed == 42
+
+
+def test_document_spec_has_default_section():
+    """DocumentSpec should always start with a section at paragraph 0."""
+    spec = DocumentSpec()
+    assert len(spec.sections) == 1
+    assert spec.sections[0].start_paragraph == 0
+
+
+def test_document_spec_add_section():
+    """Test adding section metadata."""
+    spec = DocumentSpec()
+    spec.add_paragraph("P1").add_paragraph("P2")
+    spec.add_section(1, orientation=PageOrientation.LANDSCAPE, headers=HeaderFooterSet(default="H"))
+
+    assert any(section.start_paragraph == 1 for section in spec.sections)
+    section = next(section for section in spec.sections if section.start_paragraph == 1)
+    assert section.orientation == PageOrientation.LANDSCAPE
+    assert section.headers.default == "H"
+
+
+def test_section_spec_validation():
+    """SectionSpec validates bad input."""
+    with pytest.raises(ValueError):
+        SectionSpec(start_paragraph=-1)
