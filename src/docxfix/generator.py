@@ -1030,7 +1030,8 @@ class DocumentGenerator:
         else:
             p_pr = parent.find(f"{{{w_ns}}}pPr")
             if p_pr is None:
-                p_pr = etree.SubElement(parent, f"{{{w_ns}}}pPr")
+                p_pr = etree.Element(f"{{{w_ns}}}pPr")
+                parent.insert(0, p_pr)
             sect_pr = etree.SubElement(p_pr, f"{{{w_ns}}}sectPr")
             etree.SubElement(sect_pr, f"{{{w_ns}}}type", {f"{{{w_ns}}}val": section.break_type})
 
@@ -1083,9 +1084,14 @@ class DocumentGenerator:
     def _create_header_footer_part(self, kind: str, text: str) -> bytes:
         """Create a basic header or footer part containing one paragraph."""
         w_ns = self.NAMESPACES["w"]
+        mc_ns = self.NAMESPACES["mc"]
         tag = "hdr" if kind == "header" else "ftr"
         part = etree.Element(f"{{{w_ns}}}{tag}", nsmap=self.WORD_NAMESPACES)
+        part.set(f"{{{mc_ns}}}Ignorable", "w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14")
         para = etree.SubElement(part, f"{{{w_ns}}}p")
+        p_pr = etree.SubElement(para, f"{{{w_ns}}}pPr")
+        style_val = "Header" if kind == "header" else "Footer"
+        etree.SubElement(p_pr, f"{{{w_ns}}}pStyle", {f"{{{w_ns}}}val": style_val})
         run = etree.SubElement(para, f"{{{w_ns}}}r")
         text_elem = etree.SubElement(run, f"{{{w_ns}}}t")
         text_elem.text = text
