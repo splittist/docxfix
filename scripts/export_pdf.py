@@ -17,6 +17,7 @@ import time
 from pathlib import Path
 
 WD_EXPORT_FORMAT_PDF = 17
+WD_EXPORT_DOCUMENT_WITH_MARKUP = 7
 
 
 def find_docx_files(args: list[str]) -> list[Path]:
@@ -67,6 +68,7 @@ def export_to_pdf(docx_paths: list[Path]) -> tuple[list[Path], list[tuple[Path, 
                     WD_EXPORT_FORMAT_PDF,
                     OpenAfterExport=False,
                     OptimizeFor=0,  # wdExportOptimizeForPrint
+                    Item=WD_EXPORT_DOCUMENT_WITH_MARKUP,
                 )
                 successes.append(pdf_path)
                 print("ok")
