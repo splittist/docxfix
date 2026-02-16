@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run python:*)",
+      "Bash(git stash:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git branch:*)",
+      "Bash(ls:*)",
+      "Bash(git status:*)"
+    ]
+  }
+}

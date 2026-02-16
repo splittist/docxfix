@@ -22,12 +22,3 @@ Sidecar files are short, human-authored notes. The typical sections are:
 
 Section titles are written as emphasized labels (for example, "*Scenario*:").
 Keep wording concise and focus on the smallest set of checks needed to confirm the feature.
-
-## Generating excluded fixtures
-
-Some environments disallow adding new binary files in automated PRs.
-For the section-breaks fixture, generate locally with:
-
-- `python scripts/generate_section_breaks_fixture.py corpus/section-breaks.docx`
-
-Then add the generated file manually if needed.
