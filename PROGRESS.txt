@@ -1,3 +1,21 @@
+## 2026-02-17 - Roadmap Specs for Remaining Phases (Planning Update)
+
+**What was done:**
+- Expanded `docs/project-outline.md` from a Phase-1-only note into a full roadmap view:
+  - Phase 1 and Phase 2 marked complete
+  - Next phase focused on BDD-oriented fixture generation only
+  - Non-goals tightened to keep project practical (not enterprise workflow tooling)
+- Added `docs/future-phases-prd.md` as a lean next-phase spec:
+  - **Phase 3:** External input (JSON/YAML), CLI spec/batch workflows, BDD row mapping helpers, runnable examples
+  - Analysis/assertion/versioning work explicitly deferred
+- Defined acceptance criteria, deliverables, milestones, and success criteria for this reduced scope.
+
+**Why this matters:**
+- Aligns the roadmap with the stated goal: straightforward fixture automation for legal-tech BDD workflows.
+- Avoids over-building features before there is user demand.
+
+---
+
 ## 2026-02-14 - Spec Model Foundation (M1 Complete)
 
 **What was done:**
@@ -426,3 +444,40 @@
 - Compatibility lane/checklist baseline run (manual Word verification)
 - Once that's done, M5 is complete and Phase 1 PRD is fully delivered
 
+---
+
+## 2026-02-17 - Phase 2: Code Quality & Hardening (Complete)
+
+**What was done:**
+
+Phase 2 refactored the 1618-line generator monolith into maintainable sub-modules, strengthened validation, added snapshot tests, wired deterministic seed, and cleaned up docs.
+
+**M1: Extract constants and boilerplate**
+- Created `src/docxfix/constants.py` (NAMESPACES, WORD_NAMESPACES, XML string constants)
+- Created `src/docxfix/boilerplate.py` (stateless part generators)
+
+**M2: Extract feature modules**
+- Created `src/docxfix/parts/` package with 6 modules:
+  - `context.py` (GeneratorContext dataclass)
+  - `comments.py`, `tracked_changes.py`, `numbering.py`, `styles.py`, `sections.py`
+- `generator.py` reduced from 1618 to ~620 lines
+
+**M3: Enhanced validation**
+- Added 5 semantic checks: comment ID uniqueness, tracked change ID uniqueness, comment anchor integrity, relationship completeness, content type coverage
+- 7 new tests
+
+**M4: Snapshot tests with syrupy**
+- 5 snapshot tests for key XML parts (document.xml, comments.xml, numbering.xml, styles.xml, [Content_Types].xml)
+
+**M5: Wire deterministic seed**
+- `GeneratorContext` uses `random.Random(seed)` instance (no global state pollution)
+- Spec datetimes fixed to reference datetime when seeded
+- `create_core_properties()` accepts optional fixed timestamp
+- Byte-identical output verified with 3 new tests
+
+**M6: Cleanup and docs update**
+- Removed unused imports
+- Updated `docs/phase-1-guide.md` with sections, deterministic seed, validation details
+- Created `docs/phase-2-prd.md`
+
+**Test results:** 116 tests passing (101 Phase 1 + 15 new)

@@ -1,67 +1,84 @@
-# Project Outline (Phase 1)
+# Project Outline
 
-This document captures the immediate direction for `docxfix` as an open-source Python library with a thin CLI for generating `.docx` fixtures, especially for legal-tech testing.
+This document captures the practical direction for `docxfix` as an open-source Python library with a thin CLI for generating `.docx` fixtures for legal-tech test automation.
 
 ## Product direction
 
-See also: `docs/phase-1-prd.md` for detailed Phase 1 requirements and manual-work breakdown.
-
 - Primary form factor: **Python library first**, with a **thin CLI** wrapper.
-- Purpose: generate synthetic Word documents for testing pipelines that cannot use confidential real contracts.
+- Purpose: help teams building contract-analysis systems generate representative Word fixtures from simple BDD-style descriptions.
 - Scope target: cross-runtime usage (fixtures consumed by Python, JavaScript/TypeScript, and other app stacks).
+- See also:
+  - `docs/phase-1-prd.md`
+  - `docs/phase-2-prd.md`
+  - `docs/future-phases-prd.md`
 
-## Phase priorities
+## Current status
 
-### Phase 1 (must-have)
+- Phase 1: completed (tracked changes, modern comments, legal numbering baseline).
+- Phase 2: completed (refactor/hardening, deterministic generation, broader validation, sections support in implementation).
+- Next work: Phase 3 focused on BDD interchange and CLI fixture generation only.
 
-1. **Tracked changes**
-   - Insertions and deletions are top priority.
-   - Should support configurable authors and basic revision metadata.
-2. **Modern comments experience**
-   - Threaded comments, replies, and resolved state.
-   - Focus on modern comments only (legacy comments can be deferred).
-3. **Complex numbering**
-   - Multi-level numbering patterns suitable for legal-style clauses.
-   - Two patterns: legal-list (explicit `numPr` per paragraph) and heading-based/styled (numbering linked via style definitions).
+## Roadmap
 
-### Phase 2 (deferred)
+### Phase 1 (completed)
 
-- Sections (multiple sections, orientation and header/footer variation).
+1. Tracked changes.
+2. Modern threaded comments.
+3. Complex numbering (legal-list + heading/styled).
+4. Core typed spec, generator, validation, and baseline docs/corpus.
 
-## Data generation approach
+### Phase 2 (completed)
 
-- Use synthetic placeholder text for now (e.g., lorem ipsum).
-- Faker-driven metadata (names, initials, etc.) is acceptable and desirable.
-- Deterministic generation should be supported where practical (e.g., random seed), but **byte-identical output is not required** due to Word/environmental normalization behavior.
-- Reference OOXML schemas in `./schemas` for validation and structural guidance.
-- Maintain a corpus of `.docx` fixtures with sidecar `.md` descriptions in `./corpus`.
+1. Code quality hardening and modularization.
+2. Deterministic generation with fixed seed support.
+3. Expanded semantic validation and snapshot coverage.
+4. Sections/header/footer implementation and documentation alignment.
 
-## Architecture outline
+### Phase 3 (next: BDD fixture generation)
 
-- Keep a strongly typed internal spec model representing fixture intent.
-- Treat `.docx` files as Open Packaging Convention archives with coordinated XML parts.
-- Implement feature-specific mutation modules (tracked changes, comments, numbering).
-- Add validation that combines XML/schema checks and semantic integrity checks.
+1. External fixture spec format for non-Python users (JSON/YAML).
+2. CLI support for loading fixture specs and batch generation.
+3. First-class BDD mapping helpers (scenario-table row -> fixture spec).
+4. Clear examples for using generated fixtures in BDD test suites.
 
-## Testing strategy
+### Backlog (deferred until needed)
+
+- Formal versioning/compatibility policy.
+- Analyzer/assertion workflows.
+- Broader adoption and packaging work.
+
+## Data approach
+
+- Synthetic placeholder text remains default.
+- Faker-style metadata generation remains acceptable.
+- Deterministic mode (seeded) remains a core capability for CI reproducibility.
+- OOXML schemas in `./schemas` remain the primary structural reference.
+- `./corpus` remains the curated source of golden fixtures with sidecar markdown.
+
+## Architecture direction
+
+- Keep a strongly typed internal Python spec model as the canonical representation.
+- Add simple interchange input support for external users (JSON/YAML).
+- Keep OOXML mutation logic modular by feature family.
+- Maintain a two-layer quality bar:
+  - structural checks (XML/schema/package),
+  - semantic checks (IDs, anchors, relationships, numbering/section integrity).
+
+## Testing direction
 
 ### Cross-platform core CI
 
-- Unit tests for XML mutators and helpers.
-- Integration tests generating fixture files and asserting expected feature counts/structures.
-- Snapshot-style tests where stable and useful.
+- Unit tests for spec parsing and generation helpers.
+- Integration tests for BDD description -> `.docx` generation round trips.
+- Snapshot tests for stable normalized outputs.
 
 ### Windows compatibility lane
 
-- Optional lane that opens generated fixtures in Microsoft Word and verifies they remain valid after save.
-- This lane is a compatibility check only; core CI remains cross-platform.
+- Optional Word-open and save round-trip checks.
+- Compatibility lane remains supplementary; core CI remains cross-platform.
 
-## BDD integration intent
+## Non-goals
 
-- The library/CLI should be able to consume test-friendly fixture specs that map well from BDD scenario tables.
-- Output artifacts should be easy to use from non-Python stacks (e.g., TypeScript test suites).
-
-## Non-goals (for now)
-
-- Compliance/audit guarantees.
-- Confidentiality certifications or governance workflows.
+- Enterprise document governance workflows.
+- Compliance, audit, or legal defensibility guarantees.
+- Advanced template-authoring UX (focus stays on test automation primitives).
