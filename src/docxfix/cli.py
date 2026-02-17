@@ -1,6 +1,5 @@
 """CLI application for docxfix using Typer."""
 
-from pathlib import Path
 from typing import Annotated
 
 import typer

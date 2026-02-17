@@ -1,0 +1,331 @@
+# serializer version: 1
+# name: test_comments_xml_with_reply
+  '''
+  <w:comments xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:oel="http://schemas.microsoft.com/office/2019/extlst" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16sdtfl="http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
+    <w:comment w:id="0" w:author="Test User" w:initials="T">
+      <w:p w14:paraId="603803A8" w14:textId="77777777">
+        <w:pPr>
+          <w:pStyle w:val="CommentText"/>
+        </w:pPr>
+        <w:r>
+          <w:rPr>
+            <w:rStyle w:val="CommentReference"/>
+          </w:rPr>
+          <w:annotationRef/>
+        </w:r>
+        <w:r>
+          <w:t>Main comment</w:t>
+        </w:r>
+      </w:p>
+    </w:comment>
+    <w:comment w:id="1" w:author="Test User" w:initials="T">
+      <w:p w14:paraId="39C0CB52" w14:textId="77777777">
+        <w:pPr>
+          <w:pStyle w:val="CommentText"/>
+        </w:pPr>
+        <w:r>
+          <w:rPr>
+            <w:rStyle w:val="CommentReference"/>
+          </w:rPr>
+          <w:annotationRef/>
+        </w:r>
+        <w:r>
+          <w:t>Reply text</w:t>
+        </w:r>
+      </w:p>
+    </w:comment>
+  </w:comments>
+  
+  '''
+# ---
+# name: test_content_types_all_features
+  '''
+  <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+    <Default Extension="xml" ContentType="application/xml"/>
+    <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+    <Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/>
+    <Override PartName="/word/commentsExtended.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml"/>
+    <Override PartName="/word/commentsIds.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml"/>
+    <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>
+    <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+    <Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
+    <Override PartName="/word/webSettings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml"/>
+    <Override PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/>
+    <Override PartName="/word/endnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml"/>
+    <Override PartName="/word/fontTable.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml"/>
+    <Override PartName="/word/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>
+    <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+    <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
+  </Types>
+  
+  '''
+# ---
+# name: test_document_xml_simple_paragraph
+  '''
+  <w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:oel="http://schemas.microsoft.com/office/2019/extlst" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16sdtfl="http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
+    <w:body>
+      <w:p w14:paraId="A043BAE1" w14:textId="77777777">
+        <w:r>
+          <w:t>Hello world</w:t>
+        </w:r>
+      </w:p>
+      <w:sectPr>
+        <w:pgSz w:w="11906" w:h="16838"/>
+        <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/>
+        <w:cols w:space="708"/>
+        <w:docGrid w:linePitch="360"/>
+      </w:sectPr>
+    </w:body>
+  </w:document>
+  
+  '''
+# ---
+# name: test_numbering_xml_legal_list
+  '''
+  <w:numbering xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:oel="http://schemas.microsoft.com/office/2019/extlst" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16sdtfl="http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
+    <w:abstractNum w:abstractNumId="0" w15:restartNumberingAfterBreak="0">
+      <w:nsid w:val="355246F9"/>
+      <w:multiLevelType w:val="multilevel"/>
+      <w:tmpl w:val="2000001F"/>
+      <w:lvl w:ilvl="0">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="360" w:hanging="360"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="1">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="792" w:hanging="432"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="2">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2.%3."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="1224" w:hanging="504"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="3">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2.%3.%4."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="1728" w:hanging="648"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="4">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2.%3.%4.%5."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="2232" w:hanging="792"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="5">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2.%3.%4.%5.%6."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="2736" w:hanging="936"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="6">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2.%3.%4.%5.%6.%7."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="3240" w:hanging="1080"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="7">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2.%3.%4.%5.%6.%7.%8."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="3744" w:hanging="1224"/>
+        </w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl="8">
+        <w:start w:val="1"/>
+        <w:numFmt w:val="decimal"/>
+        <w:lvlText w:val="%1.%2.%3.%4.%5.%6.%7.%8.%9."/>
+        <w:lvlJc w:val="left"/>
+        <w:pPr>
+          <w:ind w:left="4320" w:hanging="1440"/>
+        </w:pPr>
+      </w:lvl>
+    </w:abstractNum>
+    <w:num w:numId="1" w16cid:durableId="283199500">
+      <w:abstractNumId w:val="0"/>
+    </w:num>
+  </w:numbering>
+  
+  '''
+# ---
+# name: test_styles_xml_heading_numbering
+  '''
+  <w:styles xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:oel="http://schemas.microsoft.com/office/2019/extlst" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16sdtfl="http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
+    <w:docDefaults>
+      <w:rPrDefault>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsiaTheme="minorEastAsia" w:hAnsiTheme="minorHAnsi" w:cstheme="minorBidi"/>
+          <w:kern w:val="2"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+          <w:lang w:val="en-CH" w:eastAsia="en-CH" w:bidi="ar-SA"/>
+        </w:rPr>
+      </w:rPrDefault>
+      <w:pPrDefault>
+        <w:pPr>
+          <w:spacing w:after="160" w:line="278" w:lineRule="auto"/>
+        </w:pPr>
+      </w:pPrDefault>
+    </w:docDefaults>
+    <w:style w:type="paragraph" w:default="1" w:styleId="Normal">
+      <w:name w:val="Normal"/>
+      <w:qFormat/>
+    </w:style>
+    <w:style w:type="character" w:default="1" w:styleId="DefaultParagraphFont">
+      <w:name w:val="Default Paragraph Font"/>
+      <w:uiPriority w:val="1"/>
+      <w:semiHidden/>
+      <w:unhideWhenUsed/>
+    </w:style>
+    <w:style w:type="table" w:default="1" w:styleId="TableNormal">
+      <w:name w:val="Normal Table"/>
+      <w:uiPriority w:val="99"/>
+      <w:semiHidden/>
+      <w:unhideWhenUsed/>
+      <w:tblPr>
+        <w:tblInd w:w="0" w:type="dxa"/>
+        <w:tblCellMar>
+          <w:top w:w="0" w:type="dxa"/>
+          <w:left w:w="108" w:type="dxa"/>
+          <w:bottom w:w="0" w:type="dxa"/>
+          <w:right w:w="108" w:type="dxa"/>
+        </w:tblCellMar>
+      </w:tblPr>
+    </w:style>
+    <w:style w:type="numbering" w:default="1" w:styleId="NoList">
+      <w:name w:val="No List"/>
+      <w:uiPriority w:val="99"/>
+      <w:semiHidden/>
+      <w:unhideWhenUsed/>
+    </w:style>
+    <w:style w:type="paragraph" w:styleId="ListParagraph">
+      <w:name w:val="List Paragraph"/>
+      <w:basedOn w:val="Normal"/>
+      <w:uiPriority w:val="34"/>
+      <w:semiHidden/>
+      <w:unhideWhenUsed/>
+      <w:qFormat/>
+      <w:pPr>
+        <w:contextualSpacing/>
+      </w:pPr>
+    </w:style>
+    <w:style w:type="paragraph" w:styleId="Heading1">
+      <w:name w:val="heading 1"/>
+      <w:basedOn w:val="Normal"/>
+      <w:next w:val="Normal"/>
+      <w:qFormat/>
+      <w:pPr>
+        <w:keepNext/>
+        <w:keepLines/>
+        <w:numPr>
+          <w:numId w:val="1"/>
+        </w:numPr>
+        <w:spacing w:before="240" w:after="0"/>
+        <w:outlineLvl w:val="0"/>
+      </w:pPr>
+      <w:rPr>
+        <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi"/>
+        <w:b/>
+        <w:bCs/>
+        <w:sz w:val="32"/>
+        <w:szCs w:val="32"/>
+      </w:rPr>
+    </w:style>
+    <w:style w:type="paragraph" w:styleId="Heading2">
+      <w:name w:val="heading 2"/>
+      <w:basedOn w:val="Normal"/>
+      <w:next w:val="Normal"/>
+      <w:qFormat/>
+      <w:pPr>
+        <w:keepNext/>
+        <w:keepLines/>
+        <w:numPr>
+          <w:ilvl w:val="1"/>
+          <w:numId w:val="1"/>
+        </w:numPr>
+        <w:spacing w:before="200" w:after="0"/>
+        <w:outlineLvl w:val="1"/>
+      </w:pPr>
+      <w:rPr>
+        <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi"/>
+        <w:b/>
+        <w:bCs/>
+        <w:sz w:val="28"/>
+        <w:szCs w:val="28"/>
+      </w:rPr>
+    </w:style>
+    <w:style w:type="paragraph" w:styleId="Heading3">
+      <w:name w:val="heading 3"/>
+      <w:basedOn w:val="Normal"/>
+      <w:next w:val="Normal"/>
+      <w:qFormat/>
+      <w:pPr>
+        <w:keepNext/>
+        <w:keepLines/>
+        <w:numPr>
+          <w:ilvl w:val="2"/>
+          <w:numId w:val="1"/>
+        </w:numPr>
+        <w:spacing w:before="160" w:after="0"/>
+        <w:outlineLvl w:val="2"/>
+      </w:pPr>
+      <w:rPr>
+        <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi"/>
+        <w:sz w:val="24"/>
+        <w:szCs w:val="24"/>
+      </w:rPr>
+    </w:style>
+    <w:style w:type="paragraph" w:styleId="Heading4">
+      <w:name w:val="heading 4"/>
+      <w:basedOn w:val="Normal"/>
+      <w:next w:val="Normal"/>
+      <w:qFormat/>
+      <w:pPr>
+        <w:keepNext/>
+        <w:keepLines/>
+        <w:numPr>
+          <w:ilvl w:val="3"/>
+          <w:numId w:val="1"/>
+        </w:numPr>
+        <w:spacing w:before="120" w:after="0"/>
+        <w:outlineLvl w:val="3"/>
+      </w:pPr>
+      <w:rPr>
+        <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi"/>
+        <w:sz w:val="22"/>
+        <w:szCs w:val="22"/>
+      </w:rPr>
+    </w:style>
+  </w:styles>
+  
+  '''
+# ---

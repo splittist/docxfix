@@ -9,6 +9,8 @@
 - **Tracked changes** — insertions and deletions with author/date metadata.
 - **Modern threaded comments** — top-level comments, replies, and resolved state.
 - **Complex numbering** — legal-style multilevel lists and heading-based (styled) numbering.
+- **Section layout** — multi-section documents with orientation, headers/footers, and page breaks.
+- **Deterministic output** — set a `seed` on `DocumentSpec` for byte-identical generation.
 - **Combined scenarios** — all features can be used together in the same document.
 
 ## Installation
@@ -182,6 +184,42 @@ spec.add_paragraph("Subsection (a)", heading_level=3)
 
 Heading levels 1–4 map to `Heading1`–`Heading4` styles. Numbering is linked through style definitions rather than explicit `numPr` on each paragraph.
 
+#### Sections
+
+```python
+from docxfix.spec import HeaderFooterSet, PageOrientation
+
+spec = DocumentSpec()
+spec.add_paragraph("First section content")
+spec.add_paragraph("Second section content")
+spec.add_paragraph("Third section content")
+
+spec.add_section(
+    start_paragraph=1,
+    orientation=PageOrientation.LANDSCAPE,
+    headers=HeaderFooterSet(default="Landscape Header"),
+    footers=HeaderFooterSet(default="Page Footer"),
+)
+spec.add_section(
+    start_paragraph=2,
+    break_type="nextPage",
+    restart_page_numbering=True,
+    page_number_start=1,
+)
+```
+
+**SectionSpec fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `start_paragraph` | `int` | Index of the first paragraph in this section |
+| `break_type` | `str` | Section break type (default: `"nextPage"`) |
+| `orientation` | `PageOrientation` | `PORTRAIT` or `LANDSCAPE` (default: portrait) |
+| `restart_page_numbering` | `bool` | Restart page numbers at `page_number_start` |
+| `page_number_start` | `int \| None` | Starting page number when restarting |
+| `headers` | `HeaderFooterSet` | Header text for default/first/even variants |
+| `footers` | `HeaderFooterSet` | Footer text for default/first/even variants |
+
 #### Combined features
 
 All features can be used together on the same paragraph:
@@ -232,6 +270,11 @@ Validation checks:
 
 - ZIP archive structure (required OOXML entries present).
 - XML well-formedness of all XML parts.
+- Section header/footer relationship integrity.
+- Comment ID uniqueness and anchor pairing.
+- Tracked change ID uniqueness.
+- Relationship completeness (every rId referenced in document.xml exists in rels).
+- Content type coverage (every ZIP part has a matching content type).
 
 ## Spec Examples
 
@@ -319,8 +362,16 @@ DocumentSpec  →  DocumentGenerator  →  .docx (ZIP)
 | Module | Responsibility |
 |--------|---------------|
 | `spec.py` | Pure-Python dataclass tree defining fixture intent |
-| `generator.py` | Converts spec into OOXML parts (lxml trees) and writes ZIP |
-| `validator.py` | Post-generation ZIP structure and XML checks |
+| `generator.py` | Orchestrates ZIP assembly, delegates to feature modules |
+| `constants.py` | Namespace URIs and static XML constants |
+| `boilerplate.py` | Stateless boilerplate part generators (settings, fonts, theme, etc.) |
+| `parts/context.py` | Shared mutable state (`GeneratorContext`) passed to feature modules |
+| `parts/comments.py` | Comment XML generation (comments.xml, commentsExtended.xml, commentsIds.xml) |
+| `parts/tracked_changes.py` | Tracked change interleaving and XML emission |
+| `parts/numbering.py` | Numbering XML (legal-list and heading abstract nums) |
+| `parts/styles.py` | Style definitions (heading styles, ListParagraph) |
+| `parts/sections.py` | Section layout, header/footer part generation |
+| `validator.py` | Post-generation semantic and structural validation |
 | `xml_utils.py` | Small lxml helpers |
 | `cli.py` | Typer CLI wrapping the above |
 
@@ -333,6 +384,7 @@ DocumentSpec  →  DocumentGenerator  →  .docx (ZIP)
 | `word/commentsExtended.xml` | When paragraphs have comments |
 | `word/numbering.xml` | When paragraphs have numbering or heading levels |
 | `word/styles.xml` | When paragraphs have numbering or heading levels |
+| `word/header*.xml` / `word/footer*.xml` | When sections define headers/footers |
 | `word/settings.xml` | Always |
 | `word/webSettings.xml` | Always |
 | `word/fontTable.xml` | Always |
@@ -377,10 +429,7 @@ See `corpus/README.md` for the sidecar format specification.
 
 ### General
 
-- No section layout support (orientation, headers/footers, page breaks).
 - No legacy comments mode (modern threaded comments only).
-- Output is not byte-identical across runs (timestamps and IDs vary).
-- The `seed` field on `DocumentSpec` is reserved but not yet wired to deterministic generation.
 - CLI generates a hardcoded demo document; custom specs require the Python API.
 
 ## Compatibility Checklist
