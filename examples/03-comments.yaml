@@ -1,0 +1,20 @@
+# Fixture with threaded comments and replies.
+title: Review Document
+author: Reviewer
+paragraphs:
+  - text: "The indemnification clause limits liability to direct damages."
+    comments:
+      - text: "Should we include consequential damages here?"
+        anchor_text: "indemnification clause"
+        author: Alice
+        replies:
+          - text: "No, client explicitly excluded them."
+            author: Bob
+          - text: "Confirmed with external counsel."
+            author: Alice
+  - text: "Payment terms are net 30 days from invoice date."
+    comments:
+      - text: "Can we negotiate net 45?"
+        anchor_text: "net 30"
+        author: Carol
+        resolved: true

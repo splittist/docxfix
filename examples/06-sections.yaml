@@ -1,0 +1,27 @@
+# Fixture with multiple sections, headers, and footers.
+title: Multi-Section Report
+author: Author
+paragraphs:
+  - text: "Cover Page"
+  - text: "Executive Summary"
+  - text: "The project was completed on time and under budget."
+  - text: "Appendix A: Data Tables"
+sections:
+  - start_paragraph: 0
+    headers:
+      default: "CONFIDENTIAL"
+    footers:
+      default: "Page"
+  - start_paragraph: 1
+    break_type: nextPage
+    headers:
+      default: "Multi-Section Report"
+    footers:
+      default: "Page"
+  - start_paragraph: 3
+    break_type: nextPage
+    orientation: landscape
+    restart_page_numbering: true
+    page_number_start: 1
+    headers:
+      default: "Appendix A"

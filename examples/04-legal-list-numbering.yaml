@@ -1,0 +1,22 @@
+# Fixture with legal-style multilevel numbering.
+title: Contract Clauses
+author: Drafter
+paragraphs:
+  - text: "Definitions"
+    numbering:
+      level: 0
+  - text: "'Agreement' means this document."
+    numbering:
+      level: 1
+  - text: "'Party' means a signatory."
+    numbering:
+      level: 1
+  - text: "Obligations"
+    numbering:
+      level: 0
+  - text: "Delivery shall occur within 30 days."
+    numbering:
+      level: 1
+  - text: "Packaging must meet ISO standards."
+    numbering:
+      level: 2

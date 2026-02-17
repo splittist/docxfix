@@ -1,3 +1,61 @@
+## 2026-02-17 - Phase 3 M3.1: Input Parser + Validation Errors (Complete)
+
+**What was done:**
+- Implemented M3.1: External fixture input format from Phase 3 PRD (FR-3.1)
+- Created `src/docxfix/input_parser.py` — JSON/YAML fixture spec parser:
+  - `parse_spec_file(path)` — parses `.json`, `.yaml`, `.yml` files into `DocumentSpec`
+  - `parse_spec_string(text, format=)` — parses raw strings (useful for tests/embedding)
+  - `SpecParseError` — collects all errors with field paths (e.g. `$.paragraphs[0].text`) and reasons
+  - Validates all required fields, type correctness, enum values, ISO datetime formats
+  - Collects multiple errors in a single pass (does not stop at the first error)
+- All spec features supported: tracked changes, comments with replies, numbering, heading levels, sections with headers/footers, deterministic seed
+- Added `pyyaml>=6.0` to project dependencies
+- Created 8 example fixture specs in `examples/`:
+  - `01-simple.yaml` — minimal plain paragraphs
+  - `02-tracked-changes.yaml` — insertions and deletions
+  - `03-comments.yaml` — threaded comments with replies, resolved state
+  - `04-legal-list-numbering.yaml` — multilevel legal-list numbering
+  - `05-heading-numbering.yaml` — heading-based styled numbering
+  - `06-sections.yaml` — multiple sections with headers/footers, landscape orientation
+  - `07-combined.yaml` — tracked changes + comments + numbering together
+  - `08-deterministic.json` — seeded deterministic output (JSON format)
+
+**Test coverage:** 64 new tests (180 total, all passing)
+- YAML happy paths: minimal, title/author, seed, multiple paragraphs (4 tests)
+- JSON happy paths: minimal, full document (2 tests)
+- Tracked changes: insertion, deletion, revision_id, default author, date parsing (5 tests)
+- Comments: simple, with replies, resolved (3 tests)
+- Numbering: list numbering, defaults, heading level (3 tests)
+- Sections: headers/footers, page numbering (2 tests)
+- File parsing: yaml, yml, json extensions, file not found, unsupported extension (5 tests)
+- Top-level errors: not object, missing paragraphs, empty paragraphs, wrong types (6 tests)
+- Paragraph errors: not object, missing text, heading level out of range (4 tests)
+- Tracked change errors: missing change_type, invalid change_type, missing text, not object (4 tests)
+- Comment errors: missing text, missing anchor_text, reply missing text, reply not object (4 tests)
+- Date errors: invalid format, wrong type (2 tests)
+- Section errors: missing start_paragraph, invalid orientation, not object (3 tests)
+- Numbering errors: not object, level wrong type (2 tests)
+- Multiple errors: collects all errors, error message format (2 tests)
+- Malformed input: invalid JSON, invalid YAML, unsupported format (3 tests)
+- Example fixtures: all 8 examples parse successfully (8 parametrized tests)
+- End-to-end: parsed spec generates valid .docx, combined example generates valid .docx (2 tests)
+
+**Files added:**
+- `src/docxfix/input_parser.py` — parser module
+- `tests/test_input_parser.py` — comprehensive test file
+- `examples/01-simple.yaml` through `examples/08-deterministic.json` — example specs
+
+**Files changed:**
+- `pyproject.toml` — added pyyaml dependency
+- `docs/future-phases-prd.md` — marked M3.1 as complete
+- `PROGRESS.txt` — this entry
+
+**What's ready for next work:**
+- M3.2: CLI `--spec` and batch manifest flow — wire `parse_spec_file` into the CLI
+- M3.3: BDD row mapping helper + tests
+
+---
+
 ## 2026-02-17 - Roadmap Specs for Remaining Phases (Planning Update)
 
 **What was done:**

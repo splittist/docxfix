@@ -1,0 +1,14 @@
+# Fixture with tracked insertions and deletions.
+title: Contract Draft v2
+author: Legal Team
+seed: 42
+paragraphs:
+  - text: "The parties agree to the following terms."
+    tracked_changes:
+      - change_type: insertion
+        text: " additional"
+        insert_after: "following"
+        author: Jane Smith
+      - change_type: deletion
+        text: "following "
+        author: Bob Lee

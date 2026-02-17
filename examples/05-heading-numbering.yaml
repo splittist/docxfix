@@ -1,0 +1,15 @@
+# Fixture with heading-based (styled) numbering.
+title: Structured Agreement
+author: Legal
+paragraphs:
+  - text: "Introduction"
+    heading_level: 1
+  - text: "This agreement is entered into as of the Effective Date."
+  - text: "Scope of Work"
+    heading_level: 1
+  - text: "Deliverables"
+    heading_level: 2
+  - text: "The vendor shall deliver all items listed in Exhibit A."
+  - text: "Timeline"
+    heading_level: 2
+  - text: "All deliverables are due within 90 calendar days."

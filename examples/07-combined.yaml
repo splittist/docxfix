@@ -1,0 +1,35 @@
+# Combined fixture: tracked changes, comments, and numbering in one document.
+title: Contract Review Draft
+author: Legal Team
+seed: 100
+paragraphs:
+  - text: "Definitions"
+    heading_level: 1
+  - text: "'Confidential Information' means any non-public information."
+    numbering:
+      level: 0
+    tracked_changes:
+      - change_type: insertion
+        text: " disclosed under this Agreement"
+        insert_after: "information"
+        author: Editor
+    comments:
+      - text: "Definition is too broad, narrow it."
+        anchor_text: "non-public information"
+        author: Reviewer
+        replies:
+          - text: "Added qualifier about disclosure context."
+            author: Editor
+  - text: "Obligations of Receiving Party"
+    heading_level: 1
+  - text: "The Receiving Party shall protect Confidential Information."
+    numbering:
+      level: 0
+    tracked_changes:
+      - change_type: deletion
+        text: "protect"
+        author: Senior Counsel
+      - change_type: insertion
+        text: "safeguard"
+        insert_after: "shall "
+        author: Senior Counsel

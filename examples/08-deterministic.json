@@ -1,0 +1,20 @@
+{
+  "title": "Deterministic Fixture",
+  "author": "CI Bot",
+  "seed": 12345,
+  "paragraphs": [
+    {
+      "text": "This fixture produces identical output on every run."
+    },
+    {
+      "text": "Seeded generation pins all random IDs and timestamps.",
+      "comments": [
+        {
+          "text": "Verified byte-identical in CI.",
+          "anchor_text": "Seeded generation",
+          "author": "CI Bot"
+        }
+      ]
+    }
+  ]
+}

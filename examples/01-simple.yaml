@@ -1,0 +1,6 @@
+# Minimal fixture: plain paragraphs only.
+title: Simple Document
+author: Alice
+paragraphs:
+  - text: "This is the first paragraph."
+  - text: "This is the second paragraph."

@@ -43,7 +43,8 @@ ruff format src/ tests/
    - `sections.py` — Section breaks, headers, and footers.
 6. **`validator.py`** — Post-generation ZIP structure, XML well-formedness, and semantic checks (ID uniqueness, anchor integrity, relationship completeness, content type coverage).
 7. **`xml_utils.py`** — Small lxml helpers.
-8. **`cli.py`** — Typer CLI wrapping the above.
+8. **`input_parser.py`** — Parses JSON/YAML fixture specs into `DocumentSpec`. Validates fields with path-based error messages (`SpecParseError`). Supports `parse_spec_file()` and `parse_spec_string()`.
+9. **`cli.py`** — Typer CLI wrapping the above.
 
 XML elements use Clark notation (`{namespace}localname`). `WORD_NAMESPACES` is used as `nsmap=` on root elements to satisfy Word's namespace expectations.
 
@@ -51,7 +52,7 @@ XML elements use Clark notation (`{namespace}localname`). `WORD_NAMESPACES` is u
 
 - **Phase 1 (complete):** Tracked changes, modern threaded comments, legal-list + heading-based numbering, core spec/generator/validator, corpus, docs.
 - **Phase 2 (complete):** Refactored generator into `constants.py`, `boilerplate.py`, and `parts/` modules. Added deterministic seed support, expanded semantic validation, snapshot tests (syrupy), sections/headers/footers. 116 tests passing.
-- **Phase 3 (next):** BDD fixture generation — external JSON/YAML input format, CLI `--spec`/`batch` workflows, BDD row mapping helper, runnable examples for Python and JS/TS consumers. See `docs/future-phases-prd.md`.
+- **Phase 3 (in progress):** BDD fixture generation. M3.1 complete (input parser, 8 example specs, 64 tests). Next: CLI `--spec`/`batch` workflows (M3.2), BDD row mapping helper (M3.3), docs/examples (M3.4). See `docs/future-phases-prd.md`.
 - **Deferred backlog:** Analysis mode for existing `.docx` files, assertion/reporting framework, formal versioning policy.
 
 ## Key Conventions

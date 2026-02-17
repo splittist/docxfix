@@ -89,7 +89,7 @@ Acceptance criteria:
 
 ## 3.6 Milestones
 
-1. M3.1: Input parser + validation errors.
+1. M3.1: Input parser + validation errors. ✅ **Complete** — `input_parser.py`, 64 tests, 8 example specs.
 2. M3.2: CLI `--spec` and batch manifest flow.
 3. M3.3: BDD row mapping helper + tests.
 4. M3.4: Docs/examples cleanup.
