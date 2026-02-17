@@ -22,7 +22,6 @@ from docxfix.parts.comments import (
     add_paragraph_with_comments,
     create_comments,
     create_comments_extended,
-    create_comments_ids,
 )
 from docxfix.parts.context import GeneratorContext
 from docxfix.parts.numbering import create_numbering
@@ -186,10 +185,6 @@ class DocumentGenerator:
                     "word/commentsExtended.xml",
                     create_comments_extended(self._ctx),
                 )
-                docx_zip.writestr(
-                    "word/commentsIds.xml",
-                    create_comments_ids(self._ctx),
-                )
 
             if needs_numbering:
                 docx_zip.writestr(
@@ -255,10 +250,6 @@ class DocumentGenerator:
                 (
                     "/word/commentsExtended.xml",
                     "commentsExtended",
-                ),
-                (
-                    "/word/commentsIds.xml",
-                    "commentsIds",
                 ),
             ):
                 etree.SubElement(
@@ -427,11 +418,6 @@ class DocumentGenerator:
                     "http://schemas.microsoft.com/office/"
                     "2011/relationships/commentsExtended",
                     "commentsExtended.xml",
-                ),
-                (
-                    "http://schemas.microsoft.com/office/"
-                    "2016/09/relationships/commentsIds",
-                    "commentsIds.xml",
                 ),
             ]
             for rel_type, target in comment_rels:

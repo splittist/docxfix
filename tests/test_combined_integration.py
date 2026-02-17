@@ -540,7 +540,7 @@ def test_content_types_include_all_parts():
         assert "/word/document.xml" in part_names
         assert "/word/comments.xml" in part_names
         assert "/word/commentsExtended.xml" in part_names
-        assert "/word/commentsIds.xml" in part_names
+        # Note: commentsIds.xml intentionally not generated (causes threading issues in Word)
         assert "/word/numbering.xml" in part_names
         assert "/word/styles.xml" in part_names
     finally:
@@ -583,7 +583,7 @@ def test_relationships_include_all_parts():
 
         assert "comments.xml" in targets
         assert "commentsExtended.xml" in targets
-        assert "commentsIds.xml" in targets
+        # Note: commentsIds.xml intentionally not generated
         assert "numbering.xml" in targets
         assert "styles.xml" in targets
     finally:

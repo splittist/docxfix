@@ -98,13 +98,7 @@ def test_generate_comment_thread_fixture():
             ]
             assert len(parent_refs) == 1  # Only the reply has a parent
 
-            # 4. Check commentsIds.xml exists and has correct structure
-            assert "word/commentsIds.xml" in docx_zip.namelist()
-            comments_ids_xml = docx_zip.read("word/commentsIds.xml")
-            ns16cid = {"w16cid": "http://schemas.microsoft.com/office/word/2016/wordml/cid"}
-            ids_root = etree.fromstring(comments_ids_xml)
-            comment_id_elems = ids_root.findall(".//w16cid:commentId", namespaces=ns16cid)
-            assert len(comment_id_elems) == 2  # One for main comment, one for reply
+            # Note: commentsIds.xml intentionally not generated (causes threading issues in Word)
 
 
 def test_generate_resolved_comment_fixture():
