@@ -76,11 +76,31 @@ uv run docxfix --help
 # Display version and info
 uv run docxfix info
 
-# Create a docx fixture
+# Create a simple docx fixture
 uv run docxfix create output.docx
 
+# Create from a spec file (JSON/YAML)
+uv run docxfix create output.docx --spec examples/01-simple.yaml
+
 # Create with verbose output
-uv run docxfix create output.docx --verbose
+uv run docxfix create output.docx --spec examples/07-combined.yaml --verbose
+
+# Batch generate multiple fixtures from a manifest
+uv run docxfix batch --manifest fixtures.yaml --out-dir output/
+```
+
+#### Batch Manifest Format
+
+The `batch` command accepts a YAML manifest listing multiple fixtures:
+
+```yaml
+fixtures:
+  - id: simple-doc
+    spec: examples/01-simple.yaml
+    output: simple.docx
+  - id: complex-doc
+    spec: examples/07-combined.yaml
+    output: complex.docx
 ```
 
 ## Visual Verification (Windows)

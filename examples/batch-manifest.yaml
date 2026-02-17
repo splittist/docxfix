@@ -1,0 +1,36 @@
+# Example batch manifest for docxfix
+# Generate multiple fixtures in one command:
+#   uv run docxfix batch --manifest examples/batch-manifest.yaml --out-dir output/
+
+fixtures:
+  - id: simple-document
+    spec: 01-simple.yaml
+    output: simple.docx
+
+  - id: tracked-changes-document
+    spec: 02-tracked-changes.yaml
+    output: tracked-changes.docx
+
+  - id: comments-document
+    spec: 03-comments.yaml
+    output: comments.docx
+
+  - id: legal-list-document
+    spec: 04-legal-list-numbering.yaml
+    output: legal-list.docx
+
+  - id: heading-numbering-document
+    spec: 05-heading-numbering.yaml
+    output: heading-numbering.docx
+
+  - id: sections-document
+    spec: 06-sections.yaml
+    output: sections.docx
+
+  - id: combined-features-document
+    spec: 07-combined.yaml
+    output: combined.docx
+
+  - id: deterministic-document
+    spec: 08-deterministic.json
+    output: deterministic.docx

@@ -1,3 +1,56 @@
+## 2026-02-17 - Phase 3 M3.2: CLI --spec and Batch Manifest Flow (Complete)
+
+**What was done:**
+- Implemented M3.2: CLI spec and batch generation from Phase 3 PRD (FR-3.2)
+- Enhanced `src/docxfix/cli.py` with spec file support:
+  - Added `--spec` option to `create` command for loading JSON/YAML specs
+  - Created `batch` command for batch generation from manifest files
+  - Proper error handling for SpecParseError, ValidationError, and FileNotFoundError
+  - Verbose mode shows detailed progress for both commands
+- Batch manifest format:
+  - YAML file with `fixtures` list containing `id`, `spec`, and `output` fields
+  - Spec paths resolved relative to manifest directory
+  - Processes all fixtures even if some fail
+  - Exit code 1 if any failures, with summary of failed fixtures
+  - Handles at least 20 fixtures (tested with 25)
+- Created comprehensive test suite (`tests/test_cli_spec.py`) — 18 tests:
+  - `create --spec` with YAML and JSON
+  - Verbose mode, validation controls
+  - Complex specs with all features
+  - Error cases: invalid spec, missing files
+  - Batch command: simple, verbose, multiple fixtures
+  - Batch error handling: invalid specs, missing files, malformed manifest
+  - Batch validation: 20+ fixtures, relative paths
+- Created documentation:
+  - `docs/phase-3-guide.md` — comprehensive CLI and BDD integration guide
+  - Updated `README.md` with new CLI usage examples
+  - Created `examples/batch-manifest.yaml` — working example manifest
+- All acceptance criteria met:
+  - ✅ Batch handles 20+ fixtures (tested with 25)
+  - ✅ CLI exits non-zero when fixtures fail
+  - ✅ Failure output identifies fixture id and input file
+
+**Test coverage:** 18 new CLI tests (198 total, all passing)
+- create command: YAML, JSON, verbose, validation, complex specs, errors (7 tests)
+- batch command: simple, verbose, errors, validation, many fixtures, relative paths (11 tests)
+
+**Files added:**
+- `tests/test_cli_spec.py` — CLI spec loading tests
+- `docs/phase-3-guide.md` — Phase 3 user guide
+- `examples/batch-manifest.yaml` — example batch manifest
+
+**Files changed:**
+- `src/docxfix/cli.py` — added --spec option and batch command
+- `README.md` — updated CLI usage section
+- `docs/future-phases-prd.md` — marked M3.2 as complete
+- `PROGRESS.txt` — this entry
+
+**What's ready for next work:**
+- M3.3: BDD row mapping helper + tests
+- M3.4: Docs/examples cleanup
+
+---
+
 ## 2026-02-17 - Phase 3 M3.1: Input Parser + Validation Errors (Complete)
 
 **What was done:**
