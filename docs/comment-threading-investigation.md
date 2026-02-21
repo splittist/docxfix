@@ -292,5 +292,55 @@ Expected result if Hypothesis G is correct: exp2 and exp3 will work, exp0 and ex
 
 ---
 
+## Experiment Results (exp0–exp3)
+
+| File | docId | commentsIds? | Result |
+|------|-------|--------------|--------|
+| `exp0-baseline.docx` | `4D55359B` (shared) | No | ❌ ALL separate |
+| `exp1-unique-docid.docx` | `75289D34` (unique) | No | ❌ ALL separate |
+| `exp2-with-commentsids.docx` | `4D55359B` (shared) | Yes | ❌ ALL separate |
+| `exp3-unique-docid-with-commentsids.docx` | `051A0E9F` (unique) | Yes | ⚠️ PARTIAL: Cases 1,3,4 correct; Case 2 (1 reply) FAILS |
+
+**Key reminder:** v4 (shared docId `4D55359B`, NO commentsIds) works. exp0 (same config, different random paraIds) fails. This confirms the **specific paraId values matter** — or timing/caching.
+
+### Analysis: Why does Case 2 fail in exp3?
+
+Both Case 2 (parent + 1 reply) and Case 3 (parent + 2 replies) have the same XML structure, same `durableId = paraId` for parents. The only structural difference: thread size.
+
+In exp3 commentsIds.xml:
+- Case 2 parent: `paraId=BAF52693`, `durableId=BAF52693` (same — the "bug")
+- Case 2 reply:  `paraId=662F7161`, `durableId=3183A51B` (different — correct)
+- Case 3 parent: `paraId=47ABBF98`, `durableId=47ABBF98` (same — same bug!)
+- Case 3 reply1: `paraId=1D1330EC`, `durableId=B55E2150`
+- Case 3 reply2: `paraId=64F5F1C2`, `durableId=706E2210`
+
+Since both Case 2 and Case 3 have `durableId = paraId` for parents, **the durableId bug is NOT the distinguishing factor for Case 2 failure**.
+
+Remaining hypotheses for Case 2 failure:
+- **H1 (structure):** Word requires ≥2 replies to recognize a thread (thread size < 3 fails)
+- **H2 (position):** Case 2 is at a specific position (2nd thread) that Word mishandles
+- **H3 (interference):** The surrounding comments interfere with Case 2's threading
+
+---
+
+## Experiments Generated (2026-02-21, second batch)
+
+Four test documents generated to isolate Case 2 failure:
+
+| File | Config | Tests |
+|------|--------|-------|
+| `exp4-case2-isolation.docx` | Unique docId + commentsIds, ONLY Case 2 | Is Case 2 failure structural or context-dependent? |
+| `exp5-cases-swapped.docx` | Unique docId + commentsIds, Cases 2 & 3 swapped | Is failure position-dependent vs structure-dependent? |
+| `exp6-unique-durable-ids.docx` | Unique docId + commentsIds, unique durableId for ALL | Does fixing durableId=paraId bug fix Case 2? |
+| `exp7-unique-docid-no-commentsids.docx` | Unique docId, NO commentsIds (like v4) | Does unique docId alone work? |
+
+**Reading the results:**
+- exp4 fails → structural issue (1 reply is always broken); exp4 works → context was interfering
+- exp5: Case 3's structure fails in position 2 → position-dependent; Case 2 still fails → structure
+- exp6 fixes Case 2 → durableId was the issue (despite both Case 2 & 3 having same bug in exp3)
+- exp7 works → unique docId alone is sufficient, commentsIds not needed
+
+---
+
 ## Last Updated
-2026-02-21T16:58:00Z
+2026-02-21T17:30:00Z
