@@ -1,3 +1,65 @@
+## 2026-02-21 - Comment Threading Regression Investigation
+
+**Problem:** `debug-comments-simple-v4.docx` shows correct threaded comments in Word, but v5 and v6 (generated later, with same structure) show all comments as independent. SuperDoc displays all three correctly.
+
+**Analysis performed:**
+- Structural comparison of v4 vs v5 vs v6: XML structure is **identical** after normalizing random hex IDs. Only differences are the specific paraId values and timestamps.
+- Timing observation: Working files (test-two-threads 11:02, v4 11:05) were all generated in a 3-minute window. **Every file generated after 11:15 fails.** This pattern strongly suggests a session/cache-based problem.
+- Hardcoded `w14:docId`: ALL our generated files share the same `docId="4D55359B"` from the hardcoded SETTINGS_XML constant. Word uses docId to uniquely identify documents. This is a plausible source of confusion.
+- Corpus analysis: `corpus/comment-thread.docx` (Word-generated, works) has `commentsIds.xml` with a proper relationship type `http://schemas.microsoft.com/office/2016/09/relationships/commentsIds`. We removed `commentsIds.xml` in commit e1dcc4e based on an incorrect hypothesis.
+
+**Hypotheses under investigation:**
+- **Hypothesis F (docId caching):** Word associates comment threading state with `w14:docId`. Multiple documents sharing docId `4D55359B` cause conflicts in Word's internal state after the first document is cached.
+- **Hypothesis G (commentsIds.xml):** The `commentsIds.xml` file is required for reliable comment threading. Our previous removal of it may have been solving the wrong problem (perhaps it was the *incorrect relationship type* that caused the original issue).
+
+**Experiments generated** (in `scratch_out/`):
+- `exp0-baseline.docx` — control (same as v5, shared docId, no commentsIds)
+- `exp1-unique-docid.docx` — unique docId `75289D34`, no commentsIds (tests H-F)
+- `exp2-with-commentsids.docx` — shared docId, WITH commentsIds (tests H-G)
+- `exp3-unique-docid-with-commentsids.docx` — unique docId `051A0E9F`, WITH commentsIds (tests both)
+
+**Status:** Awaiting manual test in Word. Investigation log in `docs/comment-threading-investigation.md`.
+
+---
+
+## 2026-02-18 - Comment Threading Interleaving Fix
+
+**What was done:**
+- Fixed bug where threaded comments did not always appear as threads in Word
+- Root cause: `commentRangeEnd` and `commentReference` elements were batched instead of interleaved
+- Word requires specific ordering: parent end → parent ref → reply1 end → reply1 ref → etc.
+- Previous (incorrect) structure:
+  ```xml
+  <commentRangeEnd id="parent"/>
+  <commentRangeEnd id="reply1"/>
+  <commentRangeEnd id="reply2"/>
+  <commentReference id="parent"/>
+  <commentReference id="reply1"/>
+  <commentReference id="reply2"/>
+  ```
+- Fixed structure (matches Word's format):
+  ```xml
+  <commentRangeEnd id="parent"/>
+  <commentReference id="parent"/>
+  <commentRangeEnd id="reply1"/>
+  <commentReference id="reply1"/>
+  <commentRangeEnd id="reply2"/>
+  <commentReference id="reply2"/>
+  ```
+- Modified `src/docxfix/parts/comments.py::add_paragraph_with_comments()` to interleave ranges and references
+- Created debug examples:
+  - `examples/debug-comments-simple.yaml` — 4 basic threading scenarios with expected behavior documented in text
+  - `examples/debug-comments-complex.yaml` — 8 advanced scenarios (mixed threads, resolved comments, multiple paragraphs)
+- Created inspection scripts:
+  - `scripts/inspect_comments.py` — Shows comment threading structure from commentsExtended.xml
+  - `scripts/inspect_document_anchors.py` — Shows comment anchor points in document.xml
+- Added regression test:
+  - `tests/test_comment_integration.py::test_comment_range_interleaving()` — Validates proper interleaving of ranges and references
+- All 199 tests pass
+
+**Status:**
+Comment threading now works correctly in Word. Debug documents available for manual verification.
+
 ## 2026-02-17 - Phase 3 M3.2: CLI --spec and Batch Manifest Flow (Complete)
 
 **What was done:**
