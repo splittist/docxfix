@@ -261,7 +261,7 @@ CONTENT_TYPES_WITH_IDS = """<?xml version="1.0" encoding="UTF-8" standalone="yes
   <Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
   <Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/>
   <Override PartName="/word/commentsExtended.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml"/>
-  <Override PartName="/word/commentsIds.xml" ContentType="application/vnd.openxmlformats.officedocument.wordprocessingml.commentsIds+xml"/>
+  <Override PartName="/word/commentsIds.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml"/>
 </Types>"""
 
 CONTENT_TYPES_NO_IDS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
