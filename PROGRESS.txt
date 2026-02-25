@@ -1,3 +1,46 @@
+## 2026-02-25 - Phase 3 M3.3: BDD Row Mapping Helper (Complete)
+
+**What was done:**
+- Implemented M3.3: BDD row mapping helper from Phase 3 PRD (FR-3.3)
+- Created `src/docxfix/bdd_mapping.py`:
+  - `map_row_to_spec(row, *, title, author, seed)` — converts a BDD table row dict to a `DocumentSpec`
+  - `VALID_ALIASES` — documented dict of supported alias keys and descriptions
+  - `BDDMappingError` — raised for unknown aliases or invalid values
+  - Four supported aliases: `tracked_changes`, `comment_threads`, `numbering_depth`, `use_sections`
+  - Bool aliases accept `True`/`False`, `'on'`/`'off'`/`'true'`/`'false'`/`'yes'`/`'no'`
+  - Int aliases accept ints or digit strings; validated for range
+  - Unknown keys raise `BDDMappingError` with list of valid aliases
+- Created `tests/test_bdd_mapping.py` — 51 tests:
+  - `VALID_ALIASES` structure (2 tests)
+  - Empty/default row (6 tests)
+  - `tracked_changes`: True/False/string variants (7 tests)
+  - `comment_threads`: count, replies, anchor text, string values (6 tests)
+  - `numbering_depth`: levels, counts, string values (5 tests)
+  - `use_sections`: second section, header, paragraph count guarantee (6 tests)
+  - Combined aliases (3 tests)
+  - Unknown alias errors (3 tests)
+  - Invalid values: 9 error cases
+  - End-to-end: empty row, all aliases, deterministic seed, full flow (4 tests)
+
+**Acceptance criteria met:**
+- ✅ Mapping helper has unit tests for happy paths and invalid aliases (51 tests)
+- ✅ Example shows row -> spec -> `.docx` in one flow (`test_row_to_spec_to_docx_full_flow`)
+
+**Test totals:** 250 tests passing (51 new).
+
+**Files added:**
+- `src/docxfix/bdd_mapping.py` — BDD row mapping helper
+- `tests/test_bdd_mapping.py` — comprehensive tests
+
+**Files changed:**
+- `docs/future-phases-prd.md` — marked M3.3 as complete
+- `PROGRESS.txt` — this entry
+
+**What's ready for next work:**
+- M3.4: Docs/examples cleanup
+
+---
+
 ## 2026-02-25 - Comment Threading Investigation Concluded
 
 **Final results from experiments (exp0–exp10):**

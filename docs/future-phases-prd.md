@@ -91,7 +91,7 @@ Acceptance criteria:
 
 1. M3.1: Input parser + validation errors. ✅ **Complete** — `input_parser.py`, 64 tests, 8 example specs.
 2. M3.2: CLI `--spec` and batch manifest flow. ✅ **Complete** — 18 CLI tests, batch manifest support.
-3. M3.3: BDD row mapping helper + tests.
+3. M3.3: BDD row mapping helper + tests. ✅ **Complete** — `bdd_mapping.py`, 51 tests.
 4. M3.4: Docs/examples cleanup.
 
 ## 4. Deferred backlog (only if needed later)
