@@ -1,0 +1,25 @@
+# Replica of Word's two-thread paragraph
+title: Word Two Thread Replica
+author: David Murray
+paragraphs:
+  - text: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
+    comments:
+      - text: "First parent"
+        anchor_text: "ipsum "
+        author: David Murray
+        date: "2026-02-21T11:07:00"
+        replies:
+          - text: "First reply."
+            author: David Murray
+            date: "2026-02-21T11:07:00"
+      - text: "Second Parent"
+        anchor_text: "adipiscing "
+        author: David Murray
+        date: "2026-02-21T11:07:00"
+        replies:
+          - text: "First reply to second parent"
+            author: David Murray
+            date: "2026-02-21T11:07:00"
+          - text: "Second reply to second parent."
+            author: David Murray
+            date: "2026-02-21T11:07:00"

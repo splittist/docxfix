@@ -239,3 +239,101 @@ def test_comment_without_anchor_text_in_paragraph():
             
             comment_starts = doc_root.findall(".//w:commentRangeStart", namespaces=ns)
             assert len(comment_starts) >= 1
+
+
+def test_comment_range_interleaving():
+    """Test that comment ranges and references are properly interleaved for threading.
+    
+    Word requires that for threaded comments (parent + replies), the commentRangeEnd
+    and commentReference elements must be interleaved in the correct order:
+    parent end, parent ref, reply1 end, reply1 ref, reply2 end, reply2 ref, etc.
+    """
+    spec = DocumentSpec(seed=42)
+    
+    reply1 = CommentReply(text="First reply", author="Bob")
+    reply2 = CommentReply(text="Second reply", author="Carol")
+    
+    comment = Comment(
+        text="Parent comment",
+        anchor_text="test",
+        author="Alice",
+        replies=[reply1, reply2],
+    )
+    
+    spec.add_paragraph("This is a test paragraph.", comments=[comment])
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir) / "comment-interleaved.docx"
+        generator = DocumentGenerator(spec)
+        generator.generate(output_path)
+        
+        validate_docx(output_path)
+        
+        with zipfile.ZipFile(output_path, "r") as docx_zip:
+            doc_xml = docx_zip.read("word/document.xml")
+            doc_root = etree.fromstring(doc_xml)
+            ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+            
+            # Get the paragraph with comments
+            paras = doc_root.findall(".//w:p", namespaces=ns)
+            para = None
+            for p in paras:
+                if p.find(".//w:commentRangeStart", namespaces=ns) is not None:
+                    para = p
+                    break
+            assert para is not None, "No paragraph with comments found"
+            
+            # Get all comment-related elements in order
+            comment_elements = []
+            for child in para:
+                tag = child.tag.split('}')[-1]  # Get local name without namespace
+                if tag in ('commentRangeStart', 'commentRangeEnd', 'commentReference'):
+                    comment_id = child.get(f"{{{ns['w']}}}id") if tag in ('commentRangeStart', 'commentRangeEnd') else None
+                    if comment_id is None and tag == 'commentReference':
+                        # commentReference is inside a run
+                        comment_id = child.get(f"{{{ns['w']}}}id")
+                    if comment_id:
+                        comment_elements.append((tag, comment_id))
+                elif child.tag == f"{{{ns['w']}}}r":
+                    # Check for commentReference inside run
+                    ref = child.find(f".//{{{ns['w']}}}commentReference", namespaces=ns)
+                    if ref is not None:
+                        comment_id = ref.get(f"{{{ns['w']}}}id")
+                        comment_elements.append(('commentReference', comment_id))
+            
+            # Expected order:
+            # 1. All commentRangeStart elements (parent, reply1, reply2)
+            # 2. Parent commentRangeEnd
+            # 3. Parent commentReference
+            # 4. Reply1 commentRangeEnd
+            # 5. Reply1 commentReference
+            # 6. Reply2 commentRangeEnd
+            # 7. Reply2 commentReference
+            
+            starts = [el for el in comment_elements if el[0] == 'commentRangeStart']
+            assert len(starts) == 3, "Should have 3 commentRangeStart (parent + 2 replies)"
+            
+            # Get IDs
+            parent_id = starts[0][1]
+            reply1_id = starts[1][1]
+            reply2_id = starts[2][1]
+            
+            # Find ends and refs
+            ends_and_refs = [el for el in comment_elements if el[0] in ('commentRangeEnd', 'commentReference')]
+            
+            # Verify interleaved pattern
+            expected_pattern = [
+                ('commentRangeEnd', parent_id),
+                ('commentReference', parent_id),
+                ('commentRangeEnd', reply1_id),
+                ('commentReference', reply1_id),
+                ('commentRangeEnd', reply2_id),
+                ('commentReference', reply2_id),
+            ]
+            
+            assert ends_and_refs == expected_pattern, (
+                f"Comment ranges and references not properly interleaved.\n"
+                f"Expected: {expected_pattern}\n"
+                f"Got: {ends_and_refs}"
+            )
+

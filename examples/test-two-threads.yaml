@@ -1,0 +1,20 @@
+# Isolated test: Two separate threads on same paragraph
+title: Two Threads One Paragraph Test
+author: Test
+paragraphs:
+  - text: "This paragraph has two separate threads. The first thread has parent and reply. The second thread has parent and two replies."
+    comments:
+      - text: "First thread parent."
+        anchor_text: "first thread"
+        author: Alice
+        replies:
+          - text: "Reply to first thread."
+            author: Bob
+      - text: "Second thread parent."
+        anchor_text: "second thread"
+        author: Carol
+        replies:
+          - text: "First reply to second thread."
+            author: David
+          - text: "Second reply to second thread."
+            author: Eve

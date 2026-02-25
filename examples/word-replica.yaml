@@ -1,0 +1,37 @@
+# Exact replica of word-threaded-comments.docx structure
+# First paragraph: parent comment with 3 replies
+# Second paragraph: resolved parent comment with 2 replies
+title: Word-Like Threading Test
+author: David Murray
+paragraphs:
+  - text: "First paragraph."
+    comments:
+      - text: "Parent comment."
+        anchor_text: "paragraph"
+        author: David Murray
+        date: "2026-02-18T12:55:00"
+        replies:
+          - text: "First reply."
+            author: David Murray
+            date: "2026-02-18T12:55:00"
+          - text: "Second reply."
+            author: David Murray
+            date: "2026-02-18T12:55:00"
+          - text: "Third reply."
+            author: David Murray
+            date: "2026-02-18T12:55:00"
+  
+  - text: "Second paragraph."
+    comments:
+      - text: "Parent comment."
+        anchor_text: "paragraph"
+        author: David Murray
+        date: "2026-02-18T12:56:00"
+        resolved: true
+        replies:
+          - text: "First reply."
+            author: David Murray
+            date: "2026-02-18T12:56:00"
+          - text: "Second reply."
+            author: David Murray
+            date: "2026-02-18T12:56:00"
