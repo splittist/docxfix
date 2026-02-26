@@ -714,3 +714,22 @@ Phase 2 refactored the 1618-line generator monolith into maintainable sub-module
 - Created `docs/phase-2-prd.md`
 
 **Test results:** 116 tests passing (101 Phase 1 + 15 new)
+
+
+---
+
+## 2026-02-26 - Phase 3 M3.4: Docs/Examples Cleanup (Complete)
+
+**What was done:**
+
+- Created xamples/bdd_row_example.py — standalone runnable Python script showing the full BDD row -> spec -> docx workflow using map_row_to_spec. Demonstrates 5 scenario table rows (tracked-only, comments-only, numbered-list, with-sections, full-featured).
+- Created 	ests/test_examples_smoke.py — CI smoke checks:
+  - Parametrized test for each of the 8 bundled example specs via CLI create --spec
+  - Batch manifest smoke test (all 8 fixtures succeed via xamples/batch-manifest.yaml)
+  - Subprocess test that runs dd_row_example.py end-to-end
+- Updated docs/phase-3-guide.md:
+  - Replaced stale "Scenario Tables" placeholder with actual dd_mapping usage (alias table, code example)
+  - Updated "Next Steps" to reflect Phase 3 completion
+- Updated docs/future-phases-prd.md — M3.4 marked Complete
+
+**Test results:** 260 tests passing (250 existing + 10 new smoke tests)

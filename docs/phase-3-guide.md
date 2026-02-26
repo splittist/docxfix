@@ -306,9 +306,41 @@ Then('the document should contain comments', function () {
 });
 ```
 
-### Scenario Tables
+### Scenario Tables with `bdd_mapping`
 
-For BDD scenarios with table-driven tests, consider creating a helper script to map scenario table rows to fixture specs. See the Phase 3 PRD section on "BDD row mapping helper" for future tooling in this area.
+For table-driven BDD tests, use the built-in `map_row_to_spec` helper to convert a row dict directly into a `DocumentSpec`:
+
+```python
+# pytest parametrize — one fixture per scenario row
+import pytest
+from docxfix.bdd_mapping import map_row_to_spec
+from docxfix.generator import DocumentGenerator
+
+SCENARIOS = [
+    {"tracked_changes": "on",  "comment_threads": 0, "numbering_depth": 0, "use_sections": "off"},
+    {"tracked_changes": "off", "comment_threads": 2, "numbering_depth": 0, "use_sections": "off"},
+    {"tracked_changes": "on",  "comment_threads": 1, "numbering_depth": 3, "use_sections": "on"},
+]
+
+@pytest.mark.parametrize("row", SCENARIOS)
+def test_contract_fixture(row, tmp_path):
+    spec = map_row_to_spec(row, title="Contract", seed=42)
+    output = tmp_path / "fixture.docx"
+    DocumentGenerator(spec).generate(str(output))
+    # ... assert on the generated document
+    assert output.exists()
+```
+
+Supported aliases for `map_row_to_spec`:
+
+| Alias | Type | Description |
+|---|---|---|
+| `tracked_changes` | bool / `'on'`/`'off'` | Add an insertion + deletion tracked change |
+| `comment_threads` | int ≥ 0 | Number of threaded comment paragraphs |
+| `numbering_depth` | int 0–4 | Levels of legal-list numbered paragraphs |
+| `use_sections` | bool / `'on'`/`'off'` | Add a second document section with header |
+
+See `examples/bdd_row_example.py` for a complete standalone runnable example.
 
 ## Error Handling
 
@@ -365,8 +397,8 @@ Disable validation with `--no-validate` for faster generation (not recommended f
 
 ## Next Steps
 
-- **Phase 3 M3.3:** BDD row mapping helper for scenario table integration
-- **Phase 3 M3.4:** Extended examples and quick-start templates
+- **Phase 3 M3.4 complete:** Docs/examples, smoke tests, and BDD row mapping guide are all shipped.
+- See [Project Outline](project-outline.md) for the deferred backlog (analysis mode, assertion framework).
 
 ## Limitations
 
