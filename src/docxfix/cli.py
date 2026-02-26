@@ -6,6 +6,7 @@ from typing import Annotated
 import typer
 import yaml
 
+from docxfix.analyzer import AnalysisResult, analyze_docx
 from docxfix.generator import DocumentGenerator
 from docxfix.input_parser import SpecParseError, parse_spec_file
 from docxfix.spec import DocumentSpec
@@ -275,6 +276,66 @@ def batch(
         raise typer.Exit(code=1) from e
     except Exception as e:
         typer.echo(f"✗ Unexpected error: {e}", err=True)
+        raise typer.Exit(code=1) from e
+
+
+@app.command()
+def analyze(
+    path: Annotated[
+        str,
+        typer.Argument(help="Path to the .docx file to analyze"),
+    ],
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--output-format",
+            "-f",
+            help="Output format: text or json",
+        ),
+    ] = "text",
+) -> None:
+    """Analyze a .docx file and display its characteristics."""
+    try:
+        result = analyze_docx(path)
+
+        if output_format == "json":
+            typer.echo(result.to_json())
+        else:
+            tc = result.tracked_changes
+            c = result.comments
+
+            typer.echo(f"Document: {path}")
+            typer.echo(f"Paragraphs: {result.paragraph_count}")
+
+            if result.heading_counts:
+                headings = ", ".join(
+                    f"{k}: {v}" for k, v in sorted(result.heading_counts.items())
+                )
+                typer.echo(f"Headings: {headings}")
+            else:
+                typer.echo("Headings: none")
+
+            typer.echo(f"Numbered paragraphs: {result.numbered_paragraph_count}")
+            typer.echo(
+                f"Tracked changes: {tc.insertion_count} insertion(s), "
+                f"{tc.deletion_count} deletion(s)"
+            )
+            if tc.authors:
+                typer.echo(f"  Authors: {', '.join(tc.authors)}")
+            typer.echo(
+                f"Comments: {c.thread_count} thread(s), "
+                f"{c.reply_count} repl(y/ies), "
+                f"{c.total_count} total"
+            )
+            if c.authors:
+                typer.echo(f"  Authors: {', '.join(c.authors)}")
+            typer.echo(f"Sections: {result.section_count}")
+
+    except FileNotFoundError as e:
+        typer.echo(f"✗ {e}", err=True)
+        raise typer.Exit(code=1) from e
+    except Exception as e:
+        typer.echo(f"✗ Error analyzing file: {e}", err=True)
         raise typer.Exit(code=1) from e
 
 

@@ -96,7 +96,7 @@ Acceptance criteria:
 
 ## 4. Deferred backlog (only if needed later)
 
-- Analysis mode for existing `.docx` files.
+- Analysis mode for existing `.docx` files. ✅ **M4.1 complete** — `analyzer.py`, `docxfix analyze` CLI, 23 tests.
 - Built-in assertion profiles/reporting.
 - Formal versioning and compatibility policy.
 

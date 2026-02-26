@@ -733,3 +733,32 @@ Phase 2 refactored the 1618-line generator monolith into maintainable sub-module
 - Updated docs/future-phases-prd.md — M3.4 marked Complete
 
 **Test results:** 260 tests passing (250 existing + 10 new smoke tests)
+
+---
+
+## 2026-02-26 - Analysis Mode (M4.1 complete)
+
+**What was done:**
+
+Added docxfix analyze command to inspect existing .docx files and report their characteristics.
+
+**New module: src/docxfix/analyzer.py**
+- nalyze_docx(path) -> AnalysisResult — reads a .docx ZIP, extracts stats from document.xml, comments.xml, and commentsExtended.xml
+- AnalysisResult dataclass: paragraph count, heading counts by level, tracked changes (insertion/deletion counts + sorted author list), comment summary (thread/reply/total counts + sorted author list), numbered paragraph count, section count
+- 	o_dict() / 	o_json() helpers for machine-readable output
+
+**CLI: docxfix analyze <path> [--output-format text|json]**
+- 	ext (default): human-readable summary with all stats
+- json: machine-readable JSON via 	o_json()
+- Exits non-zero on missing file or analysis error
+
+**Tests: 	ests/test_analyzer.py** — 23 new tests covering:
+- Empty doc, paragraph count, heading counts, no-heading case
+- Tracked changes: counts, authors, no-changes case
+- Comments: basic, replies, multiple threads, no-comments
+- Numbering: numbered paragraphs, no-numbering
+- Sections: single and multiple
+- 	o_dict / 	o_json
+- CLI: text output, JSON output, missing file error, author display
+
+**Test results:** 283 tests passing (260 existing + 23 new)
